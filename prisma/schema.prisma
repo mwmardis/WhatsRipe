@@ -49,6 +49,9 @@ model DailyPlan {
   weeklyPlan   WeeklyPlan @relation(fields: [weeklyPlanId], references: [id], onDelete: Cascade)
   meals        Meal[]
   createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@unique([weeklyPlanId, dayOfWeek])
 }
 
 model Meal {
