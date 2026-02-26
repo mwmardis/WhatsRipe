@@ -1,0 +1,87 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+}
+
+model HouseholdProfile {
+  id                String   @id @default(cuid())
+  dietaryPreferences String  @default("[]") // JSON array of strings
+  allergies          String  @default("[]") // JSON array of strings
+  likedIngredients   String  @default("[]") // JSON array of strings
+  dislikedIngredients String @default("[]") // JSON array of strings
+  planBreakfast      Boolean @default(false)
+  planLunch          Boolean @default(false)
+  children           Child[]
+  weeklyPlans        WeeklyPlan[]
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+}
+
+model Child {
+  id          String   @id @default(cuid())
+  name        String
+  birthdate   DateTime
+  allergies   String   @default("[]") // JSON array of strings
+  householdId String
+  household   HouseholdProfile @relation(fields: [householdId], references: [id], onDelete: Cascade)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model WeeklyPlan {
+  id          String   @id @default(cuid())
+  weekStart   DateTime
+  householdId String
+  household   HouseholdProfile @relation(fields: [householdId], references: [id], onDelete: Cascade)
+  dailyPlans  DailyPlan[]
+  groceryList GroceryList?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model DailyPlan {
+  id           String   @id @default(cuid())
+  dayOfWeek    Int      // 0=Monday, 6=Sunday
+  weeklyPlanId String
+  weeklyPlan   WeeklyPlan @relation(fields: [weeklyPlanId], references: [id], onDelete: Cascade)
+  meals        Meal[]
+  createdAt    DateTime @default(now())
+}
+
+model Meal {
+  id                  String   @id @default(cuid())
+  mealType            String   // "dinner", "breakfast", "lunch"
+  name                String
+  description         String
+  seasonalIngredients String   @default("[]") // JSON array of strings
+  recipe              String?  // JSON: { ingredients: [], steps: [], prepTime: int, cookTime: int }
+  babyAdaptations     String?  // JSON: { "6-12mo": { ... }, "12-18mo": { ... }, ... }
+  dailyPlanId         String
+  dailyPlan           DailyPlan @relation(fields: [dailyPlanId], references: [id], onDelete: Cascade)
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+}
+
+model GroceryList {
+  id           String   @id @default(cuid())
+  weeklyPlanId String   @unique
+  weeklyPlan   WeeklyPlan @relation(fields: [weeklyPlanId], references: [id], onDelete: Cascade)
+  items        GroceryItem[]
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+}
+
+model GroceryItem {
+  id            String   @id @default(cuid())
+  name          String
+  quantity      Float
+  unit          String
+  storeSection  String   // "produce", "dairy", "meat", "pantry", "frozen"
+  checked       Boolean  @default(false)
+  manuallyAdded Boolean  @default(false)
+  groceryListId String
+  groceryList   GroceryList @relation(fields: [groceryListId], references: [id], onDelete: Cascade)
+}
