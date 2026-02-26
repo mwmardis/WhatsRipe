@@ -4,13 +4,23 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Loader2, Sparkles } from "lucide-react";
+import { toast } from "sonner";
 import { savePlan } from "@/app/actions/plan-actions";
+import type { Season } from "@/data/seasonal-ingredients";
+
+const seasonButtonColors: Record<Season, string> = {
+  spring: "#16a34a",
+  summer: "#d97706",
+  fall: "#ea580c",
+  winter: "#2563eb",
+};
 
 interface GenerateButtonProps {
   householdId: string;
+  season?: Season;
 }
 
-export function GenerateButton({ householdId }: GenerateButtonProps) {
+export function GenerateButton({ householdId, season }: GenerateButtonProps) {
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -32,7 +42,9 @@ export function GenerateButton({ householdId }: GenerateButtonProps) {
       await savePlan(data.householdId, data.plan);
       router.refresh();
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Something went wrong");
+      const message = err instanceof Error ? err.message : "Something went wrong";
+      setError(message);
+      toast.error(message);
     } finally {
       setIsLoading(false);
     }
@@ -45,6 +57,11 @@ export function GenerateButton({ householdId }: GenerateButtonProps) {
         disabled={isLoading}
         className="w-full"
         size="lg"
+        style={
+          season
+            ? { backgroundColor: seasonButtonColors[season] }
+            : undefined
+        }
       >
         {isLoading ? (
           <>

@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Loader2, ShoppingCart, Trash2 } from "lucide-react";
 import { GrocerySection } from "@/components/groceries/grocery-section";
 import { AddItemDialog } from "@/components/groceries/add-item-dialog";
+import { toast } from "sonner";
 import {
   generateGroceryList,
   clearCheckedItems,
@@ -65,6 +66,8 @@ export function GroceryListView({
             setGenerating(true);
             try {
               await generateGroceryList(weeklyPlanId);
+            } catch {
+              toast.error("Failed to generate grocery list");
             } finally {
               setGenerating(false);
             }
@@ -127,6 +130,8 @@ export function GroceryListView({
             setGenerating(true);
             try {
               await generateGroceryList(weeklyPlanId);
+            } catch {
+              toast.error("Failed to regenerate grocery list");
             } finally {
               setGenerating(false);
             }
