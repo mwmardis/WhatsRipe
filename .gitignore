@@ -43,3 +43,15 @@ next-env.d.ts
 # prisma
 *.db
 *.db-journal
+nul
+.claude/settings.local.json
+.playwright-mcp/console-2026-02-26T13-16-15-687Z.log
+.playwright-mcp/console-2026-02-26T13-17-32-530Z.log
+.playwright-mcp/console-2026-02-26T13-18-56-496Z.log
+.playwright-mcp/console-2026-02-26T13-19-40-760Z.log
+.playwright-mcp/console-2026-02-26T13-22-44-361Z.log
+.playwright-mcp/console-2026-02-26T13-23-08-588Z.log
+.playwright-mcp/console-2026-02-26T14-27-35-387Z.log
+.playwright-mcp/console-2026-02-26T14-31-35-999Z.log
+.playwright-mcp/page-2026-02-26T13-26-20-297Z.png
+.playwright-mcp/page-2026-02-26T14-38-02-131Z.png
