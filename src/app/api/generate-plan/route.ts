@@ -53,8 +53,9 @@ export async function POST() {
     });
   } catch (error) {
     console.error("Plan generation failed:", error);
+    const message = error instanceof Error ? error.message : String(error);
     return NextResponse.json(
-      { error: "Failed to generate meal plan" },
+      { error: "Failed to generate meal plan", details: message },
       { status: 500 }
     );
   }
