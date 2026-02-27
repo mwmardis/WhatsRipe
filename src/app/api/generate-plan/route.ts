@@ -36,7 +36,8 @@ export async function POST() {
       {
         breakfast: household.planBreakfast,
         lunch: household.planLunch,
-      }
+      },
+      household.useSeasonalFoods
     );
 
     const { object } = await generateObject({

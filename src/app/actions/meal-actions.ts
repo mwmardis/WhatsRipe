@@ -164,7 +164,8 @@ export async function generateAlternatives(mealId: string) {
     ingredientNames,
     { dietaryPreferences, allergies, likedIngredients, dislikedIngredients },
     children,
-    existingMealNames
+    existingMealNames,
+    household.useSeasonalFoods
   );
 
   const { object } = await generateObject({
