@@ -39,6 +39,7 @@ interface HouseholdData {
   dislikedIngredients: string;
   planBreakfast: boolean;
   planLunch: boolean;
+  useSeasonalFoods: boolean;
 }
 
 interface HouseholdFormProps {
@@ -152,6 +153,7 @@ export function HouseholdForm({ initialData }: HouseholdFormProps) {
     initialData.planBreakfast
   );
   const [planLunch, setPlanLunch] = useState(initialData.planLunch);
+  const [useSeasonalFoods, setUseSeasonalFoods] = useState(initialData.useSeasonalFoods);
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
 
@@ -183,6 +185,7 @@ export function HouseholdForm({ initialData }: HouseholdFormProps) {
         dislikedIngredients,
         planBreakfast,
         planLunch,
+        useSeasonalFoods,
       });
       setSaved(true);
     } finally {
@@ -272,6 +275,25 @@ export function HouseholdForm({ initialData }: HouseholdFormProps) {
               checked={planLunch}
               onCheckedChange={(checked) => {
                 setPlanLunch(checked);
+                setSaved(false);
+              }}
+            />
+          </div>
+
+          <div className="flex items-center justify-between">
+            <div>
+              <Label htmlFor="use-seasonal" className="font-semibold text-sm">
+                Feature Seasonal Ingredients
+              </Label>
+              <p className="text-[13px] text-muted-foreground">
+                Prioritize what&apos;s fresh and in season.
+              </p>
+            </div>
+            <Switch
+              id="use-seasonal"
+              checked={useSeasonalFoods}
+              onCheckedChange={(checked) => {
+                setUseSeasonalFoods(checked);
                 setSaved(false);
               }}
             />

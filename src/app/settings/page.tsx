@@ -30,6 +30,7 @@ export default async function SettingsPage() {
             dislikedIngredients: household.dislikedIngredients,
             planBreakfast: household.planBreakfast,
             planLunch: household.planLunch,
+            useSeasonalFoods: household.useSeasonalFoods,
           }}
         />
 
