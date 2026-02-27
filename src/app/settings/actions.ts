@@ -24,6 +24,7 @@ export async function updateHousehold(data: {
   dislikedIngredients: string[];
   planBreakfast: boolean;
   planLunch: boolean;
+  useSeasonalFoods: boolean;
 }) {
   const household = await getOrCreateHousehold();
 
@@ -36,18 +37,20 @@ export async function updateHousehold(data: {
       dislikedIngredients: JSON.stringify(data.dislikedIngredients),
       planBreakfast: data.planBreakfast,
       planLunch: data.planLunch,
+      useSeasonalFoods: data.useSeasonalFoods,
     },
     include: { children: true },
   });
 }
 
-export async function addChild(data: { name: string; birthdate: string }) {
+export async function addChild(data: { name: string; birthdate: string; feedingApproach?: string }) {
   const household = await getOrCreateHousehold();
 
   return db.child.create({
     data: {
       name: data.name,
       birthdate: new Date(data.birthdate),
+      feedingApproach: data.feedingApproach ?? "combination",
       householdId: household.id,
     },
   });
@@ -55,7 +58,7 @@ export async function addChild(data: { name: string; birthdate: string }) {
 
 export async function updateChild(
   id: string,
-  data: { name: string; birthdate: string; allergies: string[] }
+  data: { name: string; birthdate: string; allergies: string[]; feedingApproach?: string }
 ) {
   return db.child.update({
     where: { id },
@@ -63,6 +66,7 @@ export async function updateChild(
       name: data.name,
       birthdate: new Date(data.birthdate),
       allergies: JSON.stringify(data.allergies),
+      ...(data.feedingApproach !== undefined && { feedingApproach: data.feedingApproach }),
     },
   });
 }
