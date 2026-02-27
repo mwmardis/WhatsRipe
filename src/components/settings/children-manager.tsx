@@ -15,7 +15,7 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { addChild, updateChild, removeChild } from "@/app/settings/actions";
-import { getFoodStage, getFoodStageLabel } from "@/lib/food-stages";
+import { getFoodStage, getFoodStageLabel, needsApproachSelector, type FeedingApproach } from "@/lib/food-stages";
 import { Plus, Pencil, Trash2, Baby } from "lucide-react";
 
 interface Child {
@@ -23,6 +23,7 @@ interface Child {
   name: string;
   birthdate: Date | string;
   allergies: string;
+  feedingApproach: string;
 }
 
 interface ChildrenManagerProps {
@@ -54,6 +55,7 @@ export function ChildrenManager({ initialChildren }: ChildrenManagerProps) {
   const [newName, setNewName] = useState("");
   const [newBirthdate, setNewBirthdate] = useState("");
   const [submitting, setSubmitting] = useState(false);
+  const [newFeedingApproach, setNewFeedingApproach] = useState<FeedingApproach>("combination");
 
   const handleAdd = async () => {
     if (!newName.trim() || !newBirthdate) return;
@@ -62,6 +64,7 @@ export function ChildrenManager({ initialChildren }: ChildrenManagerProps) {
       const child = await addChild({
         name: newName.trim(),
         birthdate: newBirthdate,
+        feedingApproach: newFeedingApproach,
       });
       setChildren((prev) => [...prev, child]);
       setNewName("");
@@ -80,6 +83,7 @@ export function ChildrenManager({ initialChildren }: ChildrenManagerProps) {
         name: newName.trim(),
         birthdate: newBirthdate,
         allergies: [],
+        feedingApproach: newFeedingApproach,
       });
       setChildren((prev) =>
         prev.map((c) => (c.id === editingChild.id ? updated : c))
@@ -107,6 +111,7 @@ export function ChildrenManager({ initialChildren }: ChildrenManagerProps) {
     setEditingChild(child);
     setNewName(child.name);
     setNewBirthdate(toDateInputValue(child.birthdate));
+    setNewFeedingApproach((child.feedingApproach as FeedingApproach) || "combination");
     setEditDialogOpen(true);
   };
 
@@ -130,6 +135,7 @@ export function ChildrenManager({ initialChildren }: ChildrenManagerProps) {
                 onClick={() => {
                   setNewName("");
                   setNewBirthdate("");
+                  setNewFeedingApproach("combination");
                 }}
               >
                 <Plus className="h-4 w-4 mr-1" />
@@ -170,9 +176,38 @@ export function ChildrenManager({ initialChildren }: ChildrenManagerProps) {
                     Food stage:{" "}
                     <Badge variant="secondary" className="rounded-full">
                       {getFoodStageLabel(
-                        getFoodStage(new Date(newBirthdate))
+                        getFoodStage(new Date(newBirthdate)),
+                        newFeedingApproach
                       )}
                     </Badge>
+                  </div>
+                )}
+                {newBirthdate && needsApproachSelector(getFoodStage(new Date(newBirthdate))) && (
+                  <div className="space-y-2">
+                    <Label className="text-sm font-semibold">Feeding Approach</Label>
+                    <div className="grid grid-cols-3 gap-2">
+                      {(["traditional", "blw", "combination"] as const).map((approach) => (
+                        <button
+                          key={approach}
+                          type="button"
+                          onClick={() => setNewFeedingApproach(approach)}
+                          className={`rounded-lg border px-3 py-2 text-xs font-medium transition-colors ${
+                            newFeedingApproach === approach
+                              ? "border-primary bg-primary/10 text-primary"
+                              : "border-border hover:bg-muted/50"
+                          }`}
+                        >
+                          {approach === "traditional" ? "Traditional" : approach === "blw" ? "Baby Led Weaning" : "Combination"}
+                        </button>
+                      ))}
+                    </div>
+                    <p className="text-[11px] text-muted-foreground">
+                      {newFeedingApproach === "traditional"
+                        ? "Purees and soft solids first"
+                        : newFeedingApproach === "blw"
+                          ? "Finger foods from the start"
+                          : "Both purees and finger foods"}
+                    </p>
                   </div>
                 )}
               </div>
@@ -221,7 +256,7 @@ export function ChildrenManager({ initialChildren }: ChildrenManagerProps) {
                       variant="secondary"
                       className="text-[11px] rounded-full bg-[rgba(196,101,42,0.08)] text-primary/80 border-0"
                     >
-                      {getFoodStageLabel(stage)}
+                      {getFoodStageLabel(stage, child.feedingApproach as FeedingApproach)}
                     </Badge>
                   </div>
                   <div className="flex gap-0.5">
@@ -283,9 +318,38 @@ export function ChildrenManager({ initialChildren }: ChildrenManagerProps) {
                   Food stage:{" "}
                   <Badge variant="secondary" className="rounded-full">
                     {getFoodStageLabel(
-                      getFoodStage(new Date(newBirthdate))
+                      getFoodStage(new Date(newBirthdate)),
+                      newFeedingApproach
                     )}
                   </Badge>
+                </div>
+              )}
+              {newBirthdate && needsApproachSelector(getFoodStage(new Date(newBirthdate))) && (
+                <div className="space-y-2">
+                  <Label className="text-sm font-semibold">Feeding Approach</Label>
+                  <div className="grid grid-cols-3 gap-2">
+                    {(["traditional", "blw", "combination"] as const).map((approach) => (
+                      <button
+                        key={approach}
+                        type="button"
+                        onClick={() => setNewFeedingApproach(approach)}
+                        className={`rounded-lg border px-3 py-2 text-xs font-medium transition-colors ${
+                          newFeedingApproach === approach
+                            ? "border-primary bg-primary/10 text-primary"
+                            : "border-border hover:bg-muted/50"
+                        }`}
+                      >
+                        {approach === "traditional" ? "Traditional" : approach === "blw" ? "Baby Led Weaning" : "Combination"}
+                      </button>
+                    ))}
+                  </div>
+                  <p className="text-[11px] text-muted-foreground">
+                    {newFeedingApproach === "traditional"
+                      ? "Purees and soft solids first"
+                      : newFeedingApproach === "blw"
+                        ? "Finger foods from the start"
+                        : "Both purees and finger foods"}
+                  </p>
                 </div>
               )}
             </div>
