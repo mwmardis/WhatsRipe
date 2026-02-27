@@ -4,7 +4,6 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   Sheet,
   SheetContent,
@@ -75,16 +74,16 @@ export function SwapMeals({ mealId }: SwapMealsProps) {
       <Button
         variant="outline"
         onClick={handleOpenSwap}
-        className="w-full"
+        className="w-full rounded-xl"
       >
         <ArrowLeftRight className="h-4 w-4" />
         Swap This Meal
       </Button>
 
       <Sheet open={isOpen} onOpenChange={setIsOpen}>
-        <SheetContent side="bottom" className="max-h-[80vh] overflow-y-auto">
+        <SheetContent side="bottom" className="max-h-[80vh] overflow-y-auto rounded-t-2xl">
           <SheetHeader>
-            <SheetTitle>Swap Meal</SheetTitle>
+            <SheetTitle className="font-display">Swap Meal</SheetTitle>
             <SheetDescription>
               Choose an alternative meal to replace this one.
             </SheetDescription>
@@ -93,54 +92,53 @@ export function SwapMeals({ mealId }: SwapMealsProps) {
           <div className="flex flex-col gap-3 p-4">
             {isLoading && (
               <div className="flex items-center justify-center gap-2 py-8">
-                <Loader2 className="h-4 w-4 animate-spin" />
-                <span className="text-sm text-muted-foreground">
+                <Loader2 className="h-4 w-4 animate-spin text-primary" />
+                <span className="text-sm text-muted-foreground font-medium">
                   Finding alternatives...
                 </span>
               </div>
             )}
 
             {error && (
-              <p className="text-sm text-destructive text-center py-4">
-                {error}
-              </p>
+              <div className="rounded-xl border border-destructive/30 bg-destructive/5 p-4">
+                <p className="text-sm text-destructive text-center">{error}</p>
+              </div>
             )}
 
             {!isLoading &&
               alternatives.map((alt, i) => (
-                <Card
+                <div
                   key={i}
-                  className="cursor-pointer transition-colors hover:bg-accent/50"
+                  className="cursor-pointer rounded-xl border border-border/60 bg-card p-4 transition-all hover:bg-accent/50 hover:-translate-y-0.5 hover:shadow-sm"
                   onClick={() => !isSwapping && handleSwap(alt)}
+                  style={{ animationDelay: `${i * 60}ms` }}
                 >
-                  <CardHeader className="pb-2">
-                    <CardTitle className="text-base">{alt.name}</CardTitle>
-                  </CardHeader>
-                  <CardContent className="flex flex-col gap-2">
-                    <p className="text-sm text-muted-foreground">
-                      {alt.description}
-                    </p>
-                    {alt.seasonalIngredients.length > 0 && (
-                      <div className="flex flex-wrap gap-1">
-                        {alt.seasonalIngredients.map((ing) => (
-                          <Badge
-                            key={ing}
-                            variant="outline"
-                            className="text-xs"
-                          >
-                            {ing}
-                          </Badge>
-                        ))}
-                      </div>
-                    )}
-                  </CardContent>
-                </Card>
+                  <h3 className="font-display font-semibold text-[15px] mb-1.5">
+                    {alt.name}
+                  </h3>
+                  <p className="text-sm text-muted-foreground leading-relaxed">
+                    {alt.description}
+                  </p>
+                  {alt.seasonalIngredients.length > 0 && (
+                    <div className="flex flex-wrap gap-1 mt-2.5">
+                      {alt.seasonalIngredients.map((ing) => (
+                        <Badge
+                          key={ing}
+                          variant="secondary"
+                          className="text-[11px] rounded-full"
+                        >
+                          {ing}
+                        </Badge>
+                      ))}
+                    </div>
+                  )}
+                </div>
               ))}
 
             {isSwapping && (
               <div className="flex items-center justify-center gap-2 py-4">
-                <Loader2 className="h-4 w-4 animate-spin" />
-                <span className="text-sm text-muted-foreground">
+                <Loader2 className="h-4 w-4 animate-spin text-primary" />
+                <span className="text-sm text-muted-foreground font-medium">
                   Swapping meal...
                 </span>
               </div>

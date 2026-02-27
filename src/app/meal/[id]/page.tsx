@@ -41,9 +41,9 @@ export default async function MealPage({ params }: MealPageProps) {
   };
 
   return (
-    <div className="flex flex-col gap-6 p-4 pb-24">
+    <div className="flex flex-col gap-6 px-4 pt-4 pb-28">
       {/* Back button */}
-      <Button variant="ghost" size="sm" className="w-fit -ml-2" asChild>
+      <Button variant="ghost" size="sm" className="w-fit -ml-2 text-muted-foreground hover:text-foreground" asChild>
         <Link href="/">
           <ArrowLeft className="h-4 w-4" />
           Back to Planner
@@ -51,31 +51,44 @@ export default async function MealPage({ params }: MealPageProps) {
       </Button>
 
       {/* Meal header */}
-      <div className="flex flex-col gap-2">
-        <span className="text-xs font-medium uppercase text-muted-foreground">
+      <div className="flex flex-col gap-3 animate-fade-up">
+        <span className="text-[11px] font-semibold uppercase tracking-widest text-muted-foreground/70">
           {mealTypeLabels[meal.mealType] ?? meal.mealType}
         </span>
-        <h1 className="text-2xl font-bold">{meal.name}</h1>
-        <p className="text-muted-foreground">{meal.description}</p>
+        <h1 className="font-display text-2xl font-bold tracking-tight leading-tight">{meal.name}</h1>
+        <p className="text-muted-foreground leading-relaxed">{meal.description}</p>
 
         {seasonalIngredients.length > 0 && (
-          <div className="flex flex-wrap gap-1 pt-1">
+          <div className="flex flex-wrap gap-1.5 pt-1">
             {seasonalIngredients.map((ingredient) => (
-              <Badge key={ingredient} variant="outline" className="text-xs">
+              <Badge
+                key={ingredient}
+                variant="secondary"
+                className="rounded-full border-0 px-2.5 py-0.5 text-xs font-medium bg-secondary text-secondary-foreground"
+              >
                 {ingredient}
               </Badge>
             ))}
           </div>
         )}
+
+        {/* Decorative divider */}
+        <div className="flex items-center gap-2 pt-1">
+          <div className="h-px flex-1 bg-border/50" />
+          <div className="h-1.5 w-1.5 rounded-full bg-primary/30" />
+          <div className="h-px flex-1 bg-border/50" />
+        </div>
       </div>
 
       {/* Client-side interactive components */}
-      <MealDetailClient
-        mealId={meal.id}
-        initialRecipe={recipe}
-        initialAdaptations={babyAdaptations}
-        children={children}
-      />
+      <div className="animate-fade-up-delay-1">
+        <MealDetailClient
+          mealId={meal.id}
+          initialRecipe={recipe}
+          initialAdaptations={babyAdaptations}
+          children={children}
+        />
+      </div>
     </div>
   );
 }

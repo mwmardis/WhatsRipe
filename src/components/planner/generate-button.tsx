@@ -8,11 +8,11 @@ import { toast } from "sonner";
 import { savePlan } from "@/app/actions/plan-actions";
 import type { Season } from "@/data/seasonal-ingredients";
 
-const seasonButtonColors: Record<Season, string> = {
-  spring: "#16a34a",
-  summer: "#d97706",
-  fall: "#ea580c",
-  winter: "#2563eb",
+const seasonButtonColors: Record<Season, { bg: string; hover: string }> = {
+  spring: { bg: "#5A8F5C", hover: "#4d7a4f" },
+  summer: { bg: "#D4912A", hover: "#bf8224" },
+  fall: { bg: "#C4652A", hover: "#b05a25" },
+  winter: { bg: "#5B7B9A", hover: "#4f6d89" },
 };
 
 interface GenerateButtonProps {
@@ -24,6 +24,8 @@ export function GenerateButton({ householdId, season }: GenerateButtonProps) {
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  const colors = season ? seasonButtonColors[season] : undefined;
 
   async function handleGenerate() {
     setIsLoading(true);
@@ -51,27 +53,30 @@ export function GenerateButton({ householdId, season }: GenerateButtonProps) {
   }
 
   return (
-    <div className="flex flex-col gap-2">
+    <div className="flex flex-col gap-2 animate-fade-up-delay-1">
       <Button
         onClick={handleGenerate}
         disabled={isLoading}
-        className="w-full"
+        className="group relative w-full overflow-hidden rounded-xl text-[15px] font-semibold shadow-sm transition-all duration-200 hover:shadow-md hover:-translate-y-0.5"
         size="lg"
         style={
-          season
-            ? { backgroundColor: seasonButtonColors[season] }
+          colors
+            ? {
+                backgroundColor: colors.bg,
+                backgroundImage: `linear-gradient(180deg, rgba(255,255,255,0.12) 0%, transparent 100%)`,
+              }
             : undefined
         }
       >
         {isLoading ? (
           <>
-            <Loader2 className="h-4 w-4 animate-spin" />
-            Generating...
+            <Loader2 className="h-4.5 w-4.5 animate-spin" />
+            <span>Generating your plan...</span>
           </>
         ) : (
           <>
-            <Sparkles className="h-4 w-4" />
-            Generate This Week
+            <Sparkles className="h-4.5 w-4.5 transition-transform duration-300 group-hover:rotate-12" />
+            <span>Generate This Week</span>
           </>
         )}
       </Button>
