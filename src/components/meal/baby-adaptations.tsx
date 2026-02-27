@@ -1,7 +1,6 @@
 "use client";
 
 import { Badge } from "@/components/ui/badge";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Baby } from "lucide-react";
 import { getFoodStage, getFoodStageLabel } from "@/lib/food-stages";
 import type { BabyAdaptation } from "@/app/actions/meal-actions";
@@ -34,14 +33,17 @@ export function BabyAdaptations({
   }
 
   return (
-    <div className="flex flex-col gap-3">
-      <h2 className="flex items-center gap-2 text-lg font-semibold">
-        <Baby className="h-5 w-5" />
-        Baby & Toddler Adaptations
-      </h2>
+    <div className="flex flex-col gap-4">
+      <div className="flex items-center gap-2.5">
+        <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-[rgba(196,101,42,0.08)]">
+          <Baby className="h-4.5 w-4.5 text-primary/70" />
+        </div>
+        <h2 className="font-display text-lg font-semibold">
+          Baby & Toddler Adaptations
+        </h2>
+      </div>
 
       {adaptations.map((adaptation, i) => {
-        // Try to match an adaptation to a child by stage name
         const matchedChild = children.find((child) => {
           const stage = getFoodStage(child.birthdate);
           const label = getFoodStageLabel(stage);
@@ -54,37 +56,38 @@ export function BabyAdaptations({
         });
 
         return (
-          <Card key={i}>
-            <CardHeader className="pb-2">
-              <div className="flex items-center gap-2">
-                <CardTitle className="text-base">
-                  {matchedChild
-                    ? `${matchedChild.name} (${getAgeInMonths(matchedChild.birthdate)}mo)`
-                    : adaptation.stageName}
-                </CardTitle>
-                <Badge variant="secondary" className="text-xs">
-                  {adaptation.stageName}
-                </Badge>
-              </div>
-            </CardHeader>
-            <CardContent className="flex flex-col gap-2">
-              <p className="text-sm text-muted-foreground">
+          <div key={i} className="rounded-xl border border-border/60 bg-card p-4">
+            <div className="flex items-center gap-2 mb-3">
+              <h3 className="font-semibold text-[15px]">
+                {matchedChild
+                  ? `${matchedChild.name} (${getAgeInMonths(matchedChild.birthdate)}mo)`
+                  : adaptation.stageName}
+              </h3>
+              <Badge
+                variant="secondary"
+                className="rounded-full border-0 text-[11px] font-medium bg-[rgba(196,101,42,0.08)] text-primary/80"
+              >
+                {adaptation.stageName}
+              </Badge>
+            </div>
+            <div className="flex flex-col gap-2">
+              <p className="text-sm text-muted-foreground leading-relaxed">
                 {adaptation.instructions}
               </p>
               {adaptation.modifications.length > 0 && (
-                <ul className="flex flex-col gap-1 pl-4">
+                <ul className="flex flex-col gap-1.5 pl-4 pt-1">
                   {adaptation.modifications.map((mod, j) => (
                     <li
                       key={j}
-                      className="list-disc text-sm text-muted-foreground"
+                      className="list-disc text-sm text-foreground/70 leading-relaxed marker:text-primary/30"
                     >
                       {mod}
                     </li>
                   ))}
                 </ul>
               )}
-            </CardContent>
-          </Card>
+            </div>
+          </div>
         );
       })}
     </div>

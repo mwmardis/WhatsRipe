@@ -6,15 +6,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
 import { updateHousehold } from "@/app/settings/actions";
-import { X } from "lucide-react";
+import { X, Check } from "lucide-react";
 
 const DIETARY_OPTIONS = [
   "vegetarian",
@@ -95,18 +88,22 @@ function TagInput({
 
   return (
     <div className="space-y-2">
-      <Label>{label}</Label>
+      <Label className="text-sm font-semibold text-foreground">{label}</Label>
       {description && (
-        <p className="text-sm text-muted-foreground">{description}</p>
+        <p className="text-[13px] text-muted-foreground">{description}</p>
       )}
       <div className="flex flex-wrap gap-1.5 mb-2">
         {tags.map((tag) => (
-          <Badge key={tag} variant="secondary" className="gap-1 pr-1">
+          <Badge
+            key={tag}
+            variant="secondary"
+            className="gap-1 pr-1 rounded-full text-xs"
+          >
             {tag}
             <button
               type="button"
               onClick={() => onRemove(tag)}
-              className="ml-1 rounded-full hover:bg-muted p-0.5"
+              className="ml-1 rounded-full hover:bg-muted p-0.5 transition-colors"
             >
               <X className="h-3 w-3" />
             </button>
@@ -118,14 +115,15 @@ function TagInput({
         onChange={(e) => setInputValue(e.target.value)}
         onKeyDown={handleKeyDown}
         placeholder={placeholder ?? "Type and press Enter to add"}
+        className="rounded-lg"
       />
       {unusedSuggestions.length > 0 && (
-        <div className="flex flex-wrap gap-1 mt-1">
+        <div className="flex flex-wrap gap-1 mt-1.5">
           {unusedSuggestions.map((suggestion) => (
             <Badge
               key={suggestion}
               variant="outline"
-              className="cursor-pointer hover:bg-accent"
+              className="cursor-pointer hover:bg-primary/10 hover:border-primary/30 rounded-full text-xs transition-colors"
               onClick={() => onAdd(suggestion)}
             >
               + {suggestion}
@@ -193,14 +191,16 @@ export function HouseholdForm({ initialData }: HouseholdFormProps) {
   };
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>Household Preferences</CardTitle>
-        <CardDescription>
+    <div className="rounded-xl border border-border/60 bg-card">
+      <div className="p-5 pb-0">
+        <h2 className="font-display text-lg font-semibold tracking-tight">
+          Household Preferences
+        </h2>
+        <p className="text-[13px] text-muted-foreground mt-0.5">
           Configure your dietary needs and meal planning preferences.
-        </CardDescription>
-      </CardHeader>
-      <CardContent className="space-y-6">
+        </p>
+      </div>
+      <div className="p-5 space-y-6">
         <TagInput
           label="Dietary Preferences"
           tags={dietaryPreferences}
@@ -238,11 +238,13 @@ export function HouseholdForm({ initialData }: HouseholdFormProps) {
           placeholder="Add disliked ingredient..."
         />
 
-        <div className="space-y-4 pt-2">
-          <div className="flex items-center justify-between">
+        <div className="space-y-4 pt-2 border-t border-border/40">
+          <div className="flex items-center justify-between pt-4">
             <div>
-              <Label htmlFor="plan-breakfast">Plan Breakfast</Label>
-              <p className="text-sm text-muted-foreground">
+              <Label htmlFor="plan-breakfast" className="font-semibold text-sm">
+                Plan Breakfast
+              </Label>
+              <p className="text-[13px] text-muted-foreground">
                 Include breakfast in weekly meal plans.
               </p>
             </div>
@@ -258,8 +260,10 @@ export function HouseholdForm({ initialData }: HouseholdFormProps) {
 
           <div className="flex items-center justify-between">
             <div>
-              <Label htmlFor="plan-lunch">Plan Lunch</Label>
-              <p className="text-sm text-muted-foreground">
+              <Label htmlFor="plan-lunch" className="font-semibold text-sm">
+                Plan Lunch
+              </Label>
+              <p className="text-[13px] text-muted-foreground">
                 Include lunch in weekly meal plans.
               </p>
             </div>
@@ -274,10 +278,23 @@ export function HouseholdForm({ initialData }: HouseholdFormProps) {
           </div>
         </div>
 
-        <Button onClick={handleSave} disabled={saving}>
-          {saving ? "Saving..." : saved ? "Saved!" : "Save Preferences"}
+        <Button
+          onClick={handleSave}
+          disabled={saving}
+          className="rounded-xl"
+        >
+          {saving ? (
+            "Saving..."
+          ) : saved ? (
+            <span className="flex items-center gap-1.5">
+              <Check className="h-4 w-4" />
+              Saved!
+            </span>
+          ) : (
+            "Save Preferences"
+          )}
         </Button>
-      </CardContent>
-    </Card>
+      </div>
+    </div>
   );
 }

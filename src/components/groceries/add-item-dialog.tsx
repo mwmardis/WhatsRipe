@@ -49,7 +49,6 @@ export function AddItemDialog({ groceryListId }: { groceryListId: string }) {
         unit,
         storeSection,
       });
-      // Reset form
       setName("");
       setQuantity("1");
       setUnit("count");
@@ -63,14 +62,14 @@ export function AddItemDialog({ groceryListId }: { groceryListId: string }) {
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button variant="outline" size="sm">
+        <Button variant="outline" size="sm" className="rounded-lg">
           <Plus className="size-4 mr-1" />
           Add Item
         </Button>
       </DialogTrigger>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Add Grocery Item</DialogTitle>
+          <DialogTitle className="font-display">Add Grocery Item</DialogTitle>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="flex flex-col gap-4">
           <div className="flex flex-col gap-2">
@@ -81,6 +80,7 @@ export function AddItemDialog({ groceryListId }: { groceryListId: string }) {
               onChange={(e) => setName(e.target.value)}
               placeholder="e.g., Avocados"
               required
+              className="rounded-lg"
             />
           </div>
 
@@ -94,6 +94,7 @@ export function AddItemDialog({ groceryListId }: { groceryListId: string }) {
                 step="0.1"
                 value={quantity}
                 onChange={(e) => setQuantity(e.target.value)}
+                className="rounded-lg"
               />
             </div>
             <div className="flex flex-col gap-2">
@@ -103,6 +104,7 @@ export function AddItemDialog({ groceryListId }: { groceryListId: string }) {
                 value={unit}
                 onChange={(e) => setUnit(e.target.value)}
                 placeholder="e.g., lb, oz, count"
+                className="rounded-lg"
               />
             </div>
           </div>
@@ -110,7 +112,7 @@ export function AddItemDialog({ groceryListId }: { groceryListId: string }) {
           <div className="flex flex-col gap-2">
             <Label>Store Section</Label>
             <Select value={storeSection} onValueChange={setStoreSection}>
-              <SelectTrigger className="w-full">
+              <SelectTrigger className="w-full rounded-lg">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
@@ -123,7 +125,11 @@ export function AddItemDialog({ groceryListId }: { groceryListId: string }) {
             </Select>
           </div>
 
-          <Button type="submit" disabled={loading || !name.trim()}>
+          <Button
+            type="submit"
+            disabled={loading || !name.trim()}
+            className="rounded-xl"
+          >
             {loading ? "Adding..." : "Add"}
           </Button>
         </form>

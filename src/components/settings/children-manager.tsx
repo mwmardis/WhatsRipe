@@ -6,13 +6,6 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import {
   Dialog,
   DialogContent,
   DialogDescription,
@@ -23,7 +16,7 @@ import {
 } from "@/components/ui/dialog";
 import { addChild, updateChild, removeChild } from "@/app/settings/actions";
 import { getFoodStage, getFoodStageLabel } from "@/lib/food-stages";
-import { Plus, Pencil, Trash2 } from "lucide-react";
+import { Plus, Pencil, Trash2, Baby } from "lucide-react";
 
 interface Child {
   id: string;
@@ -118,19 +111,22 @@ export function ChildrenManager({ initialChildren }: ChildrenManagerProps) {
   };
 
   return (
-    <Card>
-      <CardHeader>
+    <div className="rounded-xl border border-border/60 bg-card">
+      <div className="p-5 pb-0">
         <div className="flex items-center justify-between">
           <div>
-            <CardTitle>Children</CardTitle>
-            <CardDescription>
+            <h2 className="font-display text-lg font-semibold tracking-tight">
+              Children
+            </h2>
+            <p className="text-[13px] text-muted-foreground mt-0.5">
               Add children to get age-appropriate food adaptations.
-            </CardDescription>
+            </p>
           </div>
           <Dialog open={addDialogOpen} onOpenChange={setAddDialogOpen}>
             <DialogTrigger asChild>
               <Button
                 size="sm"
+                className="rounded-lg"
                 onClick={() => {
                   setNewName("");
                   setNewBirthdate("");
@@ -142,7 +138,7 @@ export function ChildrenManager({ initialChildren }: ChildrenManagerProps) {
             </DialogTrigger>
             <DialogContent>
               <DialogHeader>
-                <DialogTitle>Add Child</DialogTitle>
+                <DialogTitle className="font-display">Add Child</DialogTitle>
                 <DialogDescription>
                   Enter your child&apos;s name and birthdate. The food stage
                   will be calculated automatically.
@@ -156,6 +152,7 @@ export function ChildrenManager({ initialChildren }: ChildrenManagerProps) {
                     value={newName}
                     onChange={(e) => setNewName(e.target.value)}
                     placeholder="Child's name"
+                    className="rounded-lg"
                   />
                 </div>
                 <div className="space-y-2">
@@ -165,12 +162,13 @@ export function ChildrenManager({ initialChildren }: ChildrenManagerProps) {
                     type="date"
                     value={newBirthdate}
                     onChange={(e) => setNewBirthdate(e.target.value)}
+                    className="rounded-lg"
                   />
                 </div>
                 {newBirthdate && (
                   <div className="text-sm text-muted-foreground">
                     Food stage:{" "}
-                    <Badge variant="secondary">
+                    <Badge variant="secondary" className="rounded-full">
                       {getFoodStageLabel(
                         getFoodStage(new Date(newBirthdate))
                       )}
@@ -182,6 +180,7 @@ export function ChildrenManager({ initialChildren }: ChildrenManagerProps) {
                 <Button
                   onClick={handleAdd}
                   disabled={submitting || !newName.trim() || !newBirthdate}
+                  className="rounded-lg"
                 >
                   {submitting ? "Adding..." : "Add Child"}
                 </Button>
@@ -189,49 +188,59 @@ export function ChildrenManager({ initialChildren }: ChildrenManagerProps) {
             </DialogContent>
           </Dialog>
         </div>
-      </CardHeader>
-      <CardContent>
+      </div>
+      <div className="p-5">
         {children.length === 0 ? (
-          <p className="text-sm text-muted-foreground py-4 text-center">
-            No children added yet. Add a child to get baby food adaptations in
-            your meal plans.
-          </p>
+          <div className="flex flex-col items-center gap-3 py-8 text-center">
+            <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-[rgba(196,101,42,0.08)]">
+              <Baby className="h-5 w-5 text-primary/60" />
+            </div>
+            <p className="text-sm text-muted-foreground max-w-[220px]">
+              No children added yet. Add a child to get baby food adaptations in
+              your meal plans.
+            </p>
+          </div>
         ) : (
-          <div className="space-y-3">
+          <div className="space-y-2.5">
             {children.map((child) => {
               const birthdate = new Date(child.birthdate);
               const stage = getFoodStage(birthdate);
               return (
                 <div
                   key={child.id}
-                  className="flex items-center justify-between rounded-lg border p-3"
+                  className="flex items-center justify-between rounded-xl border border-border/60 p-3.5 transition-colors hover:bg-muted/30"
                 >
                   <div className="space-y-1">
                     <div className="flex items-center gap-2">
-                      <span className="font-medium">{child.name}</span>
-                      <span className="text-sm text-muted-foreground">
+                      <span className="font-semibold text-sm">{child.name}</span>
+                      <span className="text-[13px] text-muted-foreground">
                         ({formatAge(birthdate)})
                       </span>
                     </div>
-                    <Badge variant="secondary" className="text-xs">
+                    <Badge
+                      variant="secondary"
+                      className="text-[11px] rounded-full bg-[rgba(196,101,42,0.08)] text-primary/80 border-0"
+                    >
                       {getFoodStageLabel(stage)}
                     </Badge>
                   </div>
-                  <div className="flex gap-1">
+                  <div className="flex gap-0.5">
                     <Button
                       variant="ghost"
                       size="icon"
+                      className="h-8 w-8 rounded-lg"
                       onClick={() => openEditDialog(child)}
                     >
-                      <Pencil className="h-4 w-4" />
+                      <Pencil className="h-3.5 w-3.5" />
                     </Button>
                     <Button
                       variant="ghost"
                       size="icon"
+                      className="h-8 w-8 rounded-lg text-muted-foreground hover:text-destructive"
                       onClick={() => handleRemove(child.id)}
                       disabled={submitting}
                     >
-                      <Trash2 className="h-4 w-4" />
+                      <Trash2 className="h-3.5 w-3.5" />
                     </Button>
                   </div>
                 </div>
@@ -243,7 +252,7 @@ export function ChildrenManager({ initialChildren }: ChildrenManagerProps) {
         <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
           <DialogContent>
             <DialogHeader>
-              <DialogTitle>Edit Child</DialogTitle>
+              <DialogTitle className="font-display">Edit Child</DialogTitle>
               <DialogDescription>
                 Update your child&apos;s information.
               </DialogDescription>
@@ -256,6 +265,7 @@ export function ChildrenManager({ initialChildren }: ChildrenManagerProps) {
                   value={newName}
                   onChange={(e) => setNewName(e.target.value)}
                   placeholder="Child's name"
+                  className="rounded-lg"
                 />
               </div>
               <div className="space-y-2">
@@ -265,12 +275,13 @@ export function ChildrenManager({ initialChildren }: ChildrenManagerProps) {
                   type="date"
                   value={newBirthdate}
                   onChange={(e) => setNewBirthdate(e.target.value)}
+                  className="rounded-lg"
                 />
               </div>
               {newBirthdate && (
                 <div className="text-sm text-muted-foreground">
                   Food stage:{" "}
-                  <Badge variant="secondary">
+                  <Badge variant="secondary" className="rounded-full">
                     {getFoodStageLabel(
                       getFoodStage(new Date(newBirthdate))
                     )}
@@ -282,13 +293,14 @@ export function ChildrenManager({ initialChildren }: ChildrenManagerProps) {
               <Button
                 onClick={handleEdit}
                 disabled={submitting || !newName.trim() || !newBirthdate}
+                className="rounded-lg"
               >
                 {submitting ? "Saving..." : "Save Changes"}
               </Button>
             </DialogFooter>
           </DialogContent>
         </Dialog>
-      </CardContent>
-    </Card>
+      </div>
+    </div>
   );
 }

@@ -2,7 +2,6 @@
 
 import { useEffect, useState } from "react";
 import { Badge } from "@/components/ui/badge";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Clock, ChefHat, Loader2 } from "lucide-react";
 import { generateRecipe } from "@/app/actions/meal-actions";
@@ -18,18 +17,18 @@ interface RecipeViewProps {
 function RecipeSkeleton() {
   return (
     <div className="flex flex-col gap-4">
-      <div className="flex items-center gap-2">
-        <Loader2 className="h-4 w-4 animate-spin" />
-        <span className="text-sm text-muted-foreground">
-          Generating recipe...
+      <div className="flex items-center gap-2.5 py-2">
+        <Loader2 className="h-4 w-4 animate-spin text-primary" />
+        <span className="text-sm text-muted-foreground font-medium">
+          Crafting your recipe...
         </span>
       </div>
       <div className="flex gap-2">
-        <Skeleton className="h-6 w-24" />
-        <Skeleton className="h-6 w-24" />
+        <Skeleton className="h-7 w-28 rounded-full" />
+        <Skeleton className="h-7 w-28 rounded-full" />
       </div>
-      <Skeleton className="h-32 w-full" />
-      <Skeleton className="h-48 w-full" />
+      <Skeleton className="h-36 w-full rounded-xl" />
+      <Skeleton className="h-52 w-full rounded-xl" />
     </div>
   );
 }
@@ -79,67 +78,57 @@ export function RecipeView({
 
   if (error) {
     return (
-      <Card>
-        <CardContent className="py-6">
-          <p className="text-sm text-destructive">{error}</p>
-        </CardContent>
-      </Card>
+      <div className="rounded-xl border border-destructive/30 bg-destructive/5 p-4">
+        <p className="text-sm text-destructive">{error}</p>
+      </div>
     );
   }
 
   if (!recipe) return null;
 
   return (
-    <div className="flex flex-col gap-4">
+    <div className="flex flex-col gap-5">
       {/* Time badges */}
       <div className="flex gap-2">
-        <Badge variant="outline" className="flex items-center gap-1">
-          <Clock className="h-3 w-3" />
+        <Badge variant="secondary" className="flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-medium">
+          <Clock className="h-3 w-3 text-muted-foreground" />
           Prep: {recipe.prepTime}min
         </Badge>
-        <Badge variant="outline" className="flex items-center gap-1">
-          <ChefHat className="h-3 w-3" />
+        <Badge variant="secondary" className="flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-medium">
+          <ChefHat className="h-3 w-3 text-muted-foreground" />
           Cook: {recipe.cookTime}min
         </Badge>
       </div>
 
       {/* Ingredients */}
-      <Card>
-        <CardHeader className="pb-2">
-          <CardTitle className="text-base">Ingredients</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <ul className="flex flex-col gap-1">
-            {recipe.ingredients.map((ing, i) => (
-              <li key={i} className="flex items-baseline gap-2 text-sm">
-                <span className="font-medium">
-                  {ing.quantity} {ing.unit}
-                </span>
-                <span className="text-muted-foreground">{ing.name}</span>
-              </li>
-            ))}
-          </ul>
-        </CardContent>
-      </Card>
+      <div className="rounded-xl border border-border/60 bg-card p-4">
+        <h3 className="font-display text-base font-semibold mb-3">Ingredients</h3>
+        <ul className="flex flex-col gap-2">
+          {recipe.ingredients.map((ing, i) => (
+            <li key={i} className="flex items-baseline gap-2 text-sm">
+              <span className="font-semibold text-foreground min-w-fit">
+                {ing.quantity} {ing.unit}
+              </span>
+              <span className="text-muted-foreground">{ing.name}</span>
+            </li>
+          ))}
+        </ul>
+      </div>
 
       {/* Steps */}
-      <Card>
-        <CardHeader className="pb-2">
-          <CardTitle className="text-base">Instructions</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <ol className="flex flex-col gap-3">
-            {recipe.steps.map((step, i) => (
-              <li key={i} className="flex gap-3 text-sm">
-                <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-primary text-primary-foreground text-xs font-medium">
-                  {i + 1}
-                </span>
-                <span className="pt-0.5">{step}</span>
-              </li>
-            ))}
-          </ol>
-        </CardContent>
-      </Card>
+      <div className="rounded-xl border border-border/60 bg-card p-4">
+        <h3 className="font-display text-base font-semibold mb-4">Instructions</h3>
+        <ol className="flex flex-col gap-4">
+          {recipe.steps.map((step, i) => (
+            <li key={i} className="flex gap-3 text-sm">
+              <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-primary/15 text-primary text-xs font-bold">
+                {i + 1}
+              </span>
+              <span className="pt-0.5 leading-relaxed text-foreground/85">{step}</span>
+            </li>
+          ))}
+        </ol>
+      </div>
     </div>
   );
 }

@@ -2,7 +2,7 @@
 
 import { useState, useTransition } from "react";
 import { Button } from "@/components/ui/button";
-import { Loader2, ShoppingCart, Trash2 } from "lucide-react";
+import { Loader2, ShoppingCart, Trash2, RefreshCw } from "lucide-react";
 import { GrocerySection } from "@/components/groceries/grocery-section";
 import { AddItemDialog } from "@/components/groceries/add-item-dialog";
 import { toast } from "sonner";
@@ -42,9 +42,11 @@ export function GroceryListView({
   // No weekly plan at all
   if (!weeklyPlanId) {
     return (
-      <div className="flex flex-col items-center justify-center gap-3 rounded-lg border border-dashed p-8 text-center">
-        <ShoppingCart className="size-10 text-muted-foreground" />
-        <p className="text-muted-foreground">
+      <div className="flex flex-col items-center justify-center gap-4 rounded-xl border-2 border-dashed border-border/60 bg-card/50 p-10 text-center">
+        <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-muted">
+          <ShoppingCart className="size-7 text-muted-foreground/60" />
+        </div>
+        <p className="text-muted-foreground text-sm leading-relaxed max-w-[260px]">
           No meal plan found. Generate a weekly meal plan first, then come back
           to create your grocery list.
         </p>
@@ -55,9 +57,11 @@ export function GroceryListView({
   // Plan exists but no grocery list yet
   if (!groceryList) {
     return (
-      <div className="flex flex-col items-center justify-center gap-4 rounded-lg border border-dashed p-8 text-center">
-        <ShoppingCart className="size-10 text-muted-foreground" />
-        <p className="text-muted-foreground">
+      <div className="flex flex-col items-center justify-center gap-5 rounded-xl border-2 border-dashed border-accent/30 bg-secondary/30 p-10 text-center">
+        <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-accent/10">
+          <ShoppingCart className="size-7 text-accent" />
+        </div>
+        <p className="text-muted-foreground text-sm leading-relaxed max-w-[260px]">
           Your meal plan is ready. Generate a grocery list from your planned
           meals.
         </p>
@@ -73,6 +77,7 @@ export function GroceryListView({
             }
           }}
           disabled={generating}
+          className="rounded-xl shadow-sm"
         >
           {generating ? (
             <>
@@ -112,13 +117,14 @@ export function GroceryListView({
             variant="outline"
             size="sm"
             disabled={clearing}
+            className="rounded-lg"
             onClick={() => {
               startClearTransition(async () => {
                 await clearCheckedItems(groceryList.id);
               });
             }}
           >
-            <Trash2 className="size-4 mr-1" />
+            <Trash2 className="size-3.5 mr-1" />
             {clearing ? "Clearing..." : "Clear Checked"}
           </Button>
         )}
@@ -137,31 +143,39 @@ export function GroceryListView({
             }
           }}
           disabled={generating}
-          className="ml-auto"
+          className="ml-auto rounded-lg"
         >
           {generating ? (
             <>
-              <Loader2 className="size-4 mr-1 animate-spin" />
+              <Loader2 className="size-3.5 mr-1 animate-spin" />
               Regenerating...
             </>
           ) : (
-            "Regenerate"
+            <>
+              <RefreshCw className="size-3.5 mr-1" />
+              Regenerate
+            </>
           )}
         </Button>
       </div>
 
       {orderedSections.length === 0 ? (
-        <p className="text-center text-muted-foreground py-6">
+        <p className="text-center text-muted-foreground py-8 text-sm">
           All items cleared. Add items or regenerate the list.
         </p>
       ) : (
         <div className="flex flex-col gap-3">
-          {orderedSections.map((section) => (
-            <GrocerySection
+          {orderedSections.map((section, i) => (
+            <div
               key={section}
-              section={section}
-              items={grouped[section]}
-            />
+              className="animate-fade-up"
+              style={{ animationDelay: `${i * 60}ms` }}
+            >
+              <GrocerySection
+                section={section}
+                items={grouped[section]}
+              />
+            </div>
           ))}
         </div>
       )}
