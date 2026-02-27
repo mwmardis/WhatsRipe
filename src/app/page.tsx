@@ -55,7 +55,9 @@ export default async function Home() {
         </div>
       </div>
 
-      <SeasonIndicator season={season} ingredients={ingredientNames} />
+      {household.useSeasonalFoods && (
+        <SeasonIndicator season={season} ingredients={ingredientNames} />
+      )}
 
       {isNewHousehold && (
         <div className="animate-fade-up-delay-1 rounded-xl border-2 border-dashed border-accent/50 bg-secondary/50 p-6 text-center">
