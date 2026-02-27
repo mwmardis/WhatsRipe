@@ -14,6 +14,7 @@ model HouseholdProfile {
   dislikedIngredients String @default("[]") // JSON array of strings
   planBreakfast      Boolean @default(false)
   planLunch          Boolean @default(false)
+  useSeasonalFoods    Boolean  @default(true)
   children           Child[]
   weeklyPlans        WeeklyPlan[]
   createdAt          DateTime @default(now())
@@ -25,6 +26,7 @@ model Child {
   name        String
   birthdate   DateTime
   allergies   String   @default("[]") // JSON array of strings
+  feedingApproach String   @default("combination")
   householdId String
   household   HouseholdProfile @relation(fields: [householdId], references: [id], onDelete: Cascade)
   createdAt   DateTime @default(now())
