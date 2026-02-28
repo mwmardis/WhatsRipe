@@ -1,3 +1,5 @@
+export const maxDuration = 60;
+
 import { NextResponse } from "next/server";
 import { generateObject } from "ai";
 import { getModel } from "@/lib/ai/provider";

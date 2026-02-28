@@ -1,3 +1,5 @@
+export const maxDuration = 60;
+
 import { getOrCreateHousehold } from "@/app/settings/actions";
 import { getLatestPlan } from "@/app/actions/plan-actions";
 import { getGroceryList } from "@/app/actions/grocery-actions";
