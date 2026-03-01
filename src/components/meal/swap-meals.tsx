@@ -11,7 +11,7 @@ import {
   SheetTitle,
   SheetDescription,
 } from "@/components/ui/sheet";
-import { ArrowLeftRight, Loader2 } from "lucide-react";
+import { ArrowLeftRight, Loader2, Snowflake, Clock, DollarSign } from "lucide-react";
 import { toast } from "sonner";
 import {
   generateAlternatives,
@@ -56,6 +56,13 @@ export function SwapMeals({ mealId }: SwapMealsProps) {
         name: alternative.name,
         description: alternative.description,
         seasonalIngredients: alternative.seasonalIngredients,
+        freezerFriendly: alternative.freezerFriendly,
+        estimatedPrepTime: alternative.estimatedPrepTime,
+        estimatedCookTime: alternative.estimatedCookTime,
+        cookingMethod: alternative.cookingMethod,
+        estimatedCost: alternative.estimatedCost,
+        leftoverTip: alternative.leftoverTip,
+        kidCookingTasks: alternative.kidCookingTasks,
       });
       setIsOpen(false);
       router.push("/");
@@ -106,34 +113,54 @@ export function SwapMeals({ mealId }: SwapMealsProps) {
             )}
 
             {!isLoading &&
-              alternatives.map((alt, i) => (
-                <div
-                  key={i}
-                  className="cursor-pointer rounded-xl border border-border/60 bg-card p-4 transition-all hover:bg-accent/50 hover:-translate-y-0.5 hover:shadow-sm"
-                  onClick={() => !isSwapping && handleSwap(alt)}
-                  style={{ animationDelay: `${i * 60}ms` }}
-                >
-                  <h3 className="font-display font-semibold text-[15px] mb-1.5">
-                    {alt.name}
-                  </h3>
-                  <p className="text-sm text-muted-foreground leading-relaxed">
-                    {alt.description}
-                  </p>
-                  {alt.seasonalIngredients.length > 0 && (
-                    <div className="flex flex-wrap gap-1 mt-2.5">
-                      {alt.seasonalIngredients.map((ing) => (
-                        <Badge
-                          key={ing}
-                          variant="secondary"
-                          className="text-[11px] rounded-full"
-                        >
-                          {ing}
+              alternatives.map((alt, i) => {
+                const totalTime = alt.estimatedPrepTime + alt.estimatedCookTime;
+                return (
+                  <div
+                    key={i}
+                    className="cursor-pointer rounded-xl border border-border/60 bg-card p-4 transition-all hover:bg-accent/50 hover:-translate-y-0.5 hover:shadow-sm"
+                    onClick={() => !isSwapping && handleSwap(alt)}
+                    style={{ animationDelay: `${i * 60}ms` }}
+                  >
+                    <h3 className="font-display font-semibold text-[15px] mb-1.5">
+                      {alt.name}
+                    </h3>
+                    <p className="text-sm text-muted-foreground leading-relaxed">
+                      {alt.description}
+                    </p>
+                    <div className="flex flex-wrap gap-1.5 mt-2.5">
+                      {alt.seasonalIngredients.length > 0 &&
+                        alt.seasonalIngredients.map((ing) => (
+                          <Badge
+                            key={ing}
+                            variant="secondary"
+                            className="text-[11px] rounded-full"
+                          >
+                            {ing}
+                          </Badge>
+                        ))}
+                      {totalTime > 0 && (
+                        <Badge variant="outline" className="rounded-full text-[10px] px-1.5 py-0 gap-0.5">
+                          <Clock className="h-2.5 w-2.5" />
+                          {totalTime}min
                         </Badge>
-                      ))}
+                      )}
+                      {alt.freezerFriendly && (
+                        <Badge variant="outline" className="rounded-full text-[10px] px-1.5 py-0 gap-0.5 border-blue-300 text-blue-700">
+                          <Snowflake className="h-2.5 w-2.5" />
+                          Freezer
+                        </Badge>
+                      )}
+                      {alt.estimatedCost > 0 && (
+                        <Badge variant="outline" className="rounded-full text-[10px] px-1.5 py-0 gap-0.5">
+                          <DollarSign className="h-2.5 w-2.5" />
+                          ${alt.estimatedCost.toFixed(0)}
+                        </Badge>
+                      )}
                     </div>
-                  )}
-                </div>
-              ))}
+                  </div>
+                );
+              })}
 
             {isSwapping && (
               <div className="flex items-center justify-center gap-2 py-4">

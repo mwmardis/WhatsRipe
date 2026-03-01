@@ -2,7 +2,7 @@ export const maxDuration = 60;
 
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, Snowflake, Clock, ChefHat, DollarSign, CookingPot, Lightbulb } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { getMeal } from "@/app/actions/meal-actions";
@@ -29,6 +29,9 @@ export default async function MealPage({ params }: MealPageProps) {
   }));
 
   const seasonalIngredients: string[] = JSON.parse(meal.seasonalIngredients);
+  const kidCookingTasks: { task: string; minAge: number }[] = meal.kidCookingTasks
+    ? JSON.parse(meal.kidCookingTasks)
+    : [];
 
   // Parse recipe and adaptations if they exist
   const recipe = meal.recipe ? JSON.parse(meal.recipe) : null;
@@ -36,10 +39,18 @@ export default async function MealPage({ params }: MealPageProps) {
     ? JSON.parse(meal.babyAdaptations)
     : null;
 
+  const currentRating = meal.ratings?.[0] ?? null;
+
   const mealTypeLabels: Record<string, string> = {
     dinner: "Dinner",
     breakfast: "Breakfast",
     lunch: "Lunch",
+  };
+
+  const cookingMethodLabels: Record<string, string> = {
+    "standard": "Standard",
+    "slow-cooker": "Slow Cooker",
+    "instant-pot": "Instant Pot",
   };
 
   return (
@@ -60,6 +71,40 @@ export default async function MealPage({ params }: MealPageProps) {
         <h1 className="font-display text-2xl font-bold tracking-tight leading-tight">{meal.name}</h1>
         <p className="text-muted-foreground leading-relaxed">{meal.description}</p>
 
+        {/* Info badges */}
+        <div className="flex flex-wrap gap-2 pt-1">
+          {meal.estimatedPrepTime != null && (
+            <Badge variant="secondary" className="flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-medium">
+              <Clock className="h-3 w-3 text-muted-foreground" />
+              Prep: {meal.estimatedPrepTime}min
+            </Badge>
+          )}
+          {meal.estimatedCookTime != null && (
+            <Badge variant="secondary" className="flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-medium">
+              <ChefHat className="h-3 w-3 text-muted-foreground" />
+              Cook: {meal.estimatedCookTime}min
+            </Badge>
+          )}
+          {meal.freezerFriendly && (
+            <Badge variant="outline" className="flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-medium border-blue-300 text-blue-700">
+              <Snowflake className="h-3 w-3" />
+              Freezer Friendly
+            </Badge>
+          )}
+          {meal.cookingMethod !== "standard" && (
+            <Badge variant="outline" className="flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-medium border-amber-300 text-amber-700">
+              <CookingPot className="h-3 w-3" />
+              {cookingMethodLabels[meal.cookingMethod] ?? meal.cookingMethod}
+            </Badge>
+          )}
+          {meal.estimatedCost != null && meal.estimatedCost > 0 && (
+            <Badge variant="secondary" className="flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-medium">
+              <DollarSign className="h-3 w-3 text-muted-foreground" />
+              ~${meal.estimatedCost.toFixed(0)}
+            </Badge>
+          )}
+        </div>
+
         {seasonalIngredients.length > 0 && (
           <div className="flex flex-wrap gap-1.5 pt-1">
             {seasonalIngredients.map((ingredient) => (
@@ -71,6 +116,34 @@ export default async function MealPage({ params }: MealPageProps) {
                 {ingredient}
               </Badge>
             ))}
+          </div>
+        )}
+
+        {/* Leftover tip */}
+        {meal.leftoverTip && (
+          <div className="flex items-start gap-2.5 rounded-xl border border-border/60 bg-muted/30 p-3 mt-1">
+            <Lightbulb className="h-4 w-4 shrink-0 mt-0.5 text-amber-600" />
+            <div>
+              <span className="text-xs font-semibold text-foreground">Leftover Tip</span>
+              <p className="text-sm text-muted-foreground mt-0.5">{meal.leftoverTip}</p>
+            </div>
+          </div>
+        )}
+
+        {/* Kid cooking tasks */}
+        {kidCookingTasks.length > 0 && (
+          <div className="rounded-xl border border-border/60 bg-card p-4 mt-1">
+            <h3 className="font-display text-base font-semibold mb-3">Kids Can Help</h3>
+            <ul className="flex flex-col gap-2">
+              {kidCookingTasks.map((task, i) => (
+                <li key={i} className="flex items-baseline gap-2 text-sm">
+                  <Badge variant="outline" className="rounded-full px-1.5 py-0 text-[10px] shrink-0">
+                    {task.minAge}y+
+                  </Badge>
+                  <span className="text-foreground/85">{task.task}</span>
+                </li>
+              ))}
+            </ul>
           </div>
         )}
 
@@ -86,8 +159,10 @@ export default async function MealPage({ params }: MealPageProps) {
       <div className="animate-fade-up-delay-1">
         <MealDetailClient
           mealId={meal.id}
+          mealName={meal.name}
           initialRecipe={recipe}
           initialAdaptations={babyAdaptations}
+          initialRating={currentRating ? { rating: currentRating.rating, notes: currentRating.notes } : null}
           children={children}
         />
       </div>

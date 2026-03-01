@@ -5,6 +5,7 @@ import { revalidatePath } from "next/cache";
 import { db } from "@/lib/db";
 import { getModel } from "@/lib/ai/provider";
 import { groceryListSchema, buildGroceryPrompt } from "@/lib/ai/grocery-prompt";
+import { getOrCreateHousehold } from "@/app/settings/actions";
 
 export async function generateGroceryList(weeklyPlanId: string) {
   // Load all meals for the plan
@@ -36,7 +37,19 @@ export async function generateGroceryList(weeklyPlanId: string) {
     throw new Error("No meals found in this plan");
   }
 
-  const { system, user } = buildGroceryPrompt(meals);
+  // Load pantry items to exclude from grocery list
+  const household = await getOrCreateHousehold();
+  const pantryItems = await db.pantryItem.findMany({
+    where: { householdId: household.id },
+    select: { name: true },
+  });
+  const pantryItemNames = pantryItems.map((p) => p.name);
+
+  const { system, user } = buildGroceryPrompt(
+    meals,
+    pantryItemNames,
+    household.weeklyBudget
+  );
 
   const { object } = await generateObject({
     model: getModel(),

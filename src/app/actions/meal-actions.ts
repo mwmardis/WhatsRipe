@@ -49,6 +49,7 @@ export async function getMeal(id: string) {
   return db.meal.findUnique({
     where: { id },
     include: {
+      ratings: true,
       dailyPlan: {
         include: {
           weeklyPlan: true,
@@ -102,7 +103,7 @@ export async function generateRecipe(mealId: string) {
     prompt: user,
   });
 
-  const updated = await db.meal.update({
+  await db.meal.update({
     where: { id: mealId },
     data: {
       recipe: JSON.stringify(object.recipe),
@@ -143,7 +144,6 @@ export async function generateAlternatives(mealId: string) {
   const household = weeklyPlan.household;
   const children = household.children;
 
-  // Collect all existing meal names from the weekly plan
   const existingMealNames = weeklyPlan.dailyPlans.flatMap((dp) =>
     dp.meals.map((m) => m.name)
   );
@@ -158,11 +158,24 @@ export async function generateAlternatives(mealId: string) {
   const dislikedIngredients: string[] = JSON.parse(
     household.dislikedIngredients
   );
+  const busyDays: number[] = JSON.parse(household.busyDays);
+  const preferredCookingMethods: string[] = JSON.parse(
+    household.preferredCookingMethods
+  );
 
   const { system, user } = buildSwapPrompt(
     season,
     ingredientNames,
-    { dietaryPreferences, allergies, likedIngredients, dislikedIngredients },
+    {
+      dietaryPreferences,
+      allergies,
+      likedIngredients,
+      dislikedIngredients,
+      busyDays,
+      pickyEaterMode: household.pickyEaterMode,
+      weeklyBudget: household.weeklyBudget,
+      preferredCookingMethods,
+    },
     children,
     existingMealNames,
     household.useSeasonalFoods
@@ -184,6 +197,13 @@ export async function swapMeal(
     name: string;
     description: string;
     seasonalIngredients: string[];
+    freezerFriendly?: boolean;
+    estimatedPrepTime?: number;
+    estimatedCookTime?: number;
+    cookingMethod?: string;
+    estimatedCost?: number;
+    leftoverTip?: string;
+    kidCookingTasks?: { task: string; minAge: number }[];
   }
 ) {
   return db.meal.update({
@@ -192,6 +212,15 @@ export async function swapMeal(
       name: newMealData.name,
       description: newMealData.description,
       seasonalIngredients: JSON.stringify(newMealData.seasonalIngredients),
+      freezerFriendly: newMealData.freezerFriendly ?? false,
+      estimatedPrepTime: newMealData.estimatedPrepTime ?? null,
+      estimatedCookTime: newMealData.estimatedCookTime ?? null,
+      cookingMethod: newMealData.cookingMethod ?? "standard",
+      estimatedCost: newMealData.estimatedCost ?? null,
+      leftoverTip: newMealData.leftoverTip ?? null,
+      kidCookingTasks: newMealData.kidCookingTasks
+        ? JSON.stringify(newMealData.kidCookingTasks)
+        : null,
       recipe: null,
       babyAdaptations: null,
     },

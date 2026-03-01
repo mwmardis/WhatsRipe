@@ -1,6 +1,7 @@
 import { getOrCreateHousehold } from "./actions";
 import { HouseholdForm } from "@/components/settings/household-form";
 import { ChildrenManager } from "@/components/settings/children-manager";
+import { FamilyMembers } from "@/components/settings/family-members";
 
 export default async function SettingsPage() {
   const household = await getOrCreateHousehold();
@@ -31,10 +32,18 @@ export default async function SettingsPage() {
             planBreakfast: household.planBreakfast,
             planLunch: household.planLunch,
             useSeasonalFoods: household.useSeasonalFoods,
+            busyDays: household.busyDays,
+            pickyEaterMode: household.pickyEaterMode,
+            weeklyBudget: household.weeklyBudget,
+            mealPrepDay: household.mealPrepDay,
+            planWeeks: household.planWeeks,
+            preferredCookingMethods: household.preferredCookingMethods,
           }}
         />
 
         <ChildrenManager initialChildren={household.children} />
+
+        <FamilyMembers initialMembers={household.familyMembers} />
       </div>
     </div>
   );

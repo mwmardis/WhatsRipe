@@ -41,7 +41,22 @@ export function GenerateButton({ householdId, season }: GenerateButtonProps) {
       }
 
       const data = await response.json();
-      await savePlan(data.householdId, data.plan);
+      const planWeeks = data.planWeeks ?? 1;
+
+      // Save first week
+      await savePlan(data.householdId, data.plan, 0);
+
+      // Generate and save additional weeks if multi-week planning
+      for (let week = 1; week < planWeeks; week++) {
+        const weekResponse = await fetch("/api/generate-plan", {
+          method: "POST",
+        });
+        if (weekResponse.ok) {
+          const weekData = await weekResponse.json();
+          await savePlan(data.householdId, weekData.plan, week);
+        }
+      }
+
       router.refresh();
     } catch (err) {
       const message = err instanceof Error ? err.message : "Something went wrong";
