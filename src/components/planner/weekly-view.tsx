@@ -14,6 +14,12 @@ interface MealData {
   name: string;
   description: string;
   seasonalIngredients: string[];
+  freezerFriendly?: boolean;
+  estimatedPrepTime?: number | null;
+  estimatedCookTime?: number | null;
+  cookingMethod?: string;
+  estimatedCost?: number | null;
+  rating?: string | null;
 }
 
 interface DailyPlanData {
@@ -26,6 +32,7 @@ interface WeeklyViewProps {
   weekStart: Date;
   dailyPlans: DailyPlanData[];
   children: ChildInfo[];
+  weekLabel?: string;
 }
 
 const DAY_NAMES = [
@@ -58,9 +65,15 @@ export function WeeklyView({
   weekStart,
   dailyPlans,
   children,
+  weekLabel,
 }: WeeklyViewProps) {
   return (
     <div className="flex flex-col gap-8 animate-fade-up-delay-2">
+      {weekLabel && (
+        <h2 className="font-display text-xl font-semibold tracking-tight text-foreground">
+          {weekLabel}
+        </h2>
+      )}
       {dailyPlans.map((day, dayIndex) => {
         const sortedMeals = [...day.meals].sort(
           (a, b) => (MEAL_ORDER[a.mealType] ?? 3) - (MEAL_ORDER[b.mealType] ?? 3)
@@ -89,6 +102,12 @@ export function WeeklyView({
                   seasonalIngredients={meal.seasonalIngredients}
                   mealType={meal.mealType}
                   children={children}
+                  freezerFriendly={meal.freezerFriendly}
+                  estimatedPrepTime={meal.estimatedPrepTime}
+                  estimatedCookTime={meal.estimatedCookTime}
+                  cookingMethod={meal.cookingMethod}
+                  estimatedCost={meal.estimatedCost}
+                  rating={meal.rating}
                 />
               ))}
             </div>

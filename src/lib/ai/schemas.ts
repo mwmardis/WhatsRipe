@@ -6,6 +6,16 @@ export const mealSchema = z.object({
   seasonalIngredients: z.array(z.string()),
   estimatedPrepTime: z.number(),
   estimatedCookTime: z.number(),
+  freezerFriendly: z.boolean(),
+  cookingMethod: z.enum(["standard", "slow-cooker", "instant-pot"]),
+  estimatedCost: z.number(), // estimated cost in dollars
+  leftoverTip: z.string(), // how to repurpose leftovers
+  kidCookingTasks: z.array(
+    z.object({
+      task: z.string(),
+      minAge: z.number(), // minimum age in years
+    })
+  ),
 });
 
 export const dailyPlanSchema = z.object({

@@ -7,6 +7,7 @@ import { weeklyPlanSchema } from "@/lib/ai/schemas";
 import { buildWeeklyPlanPrompt } from "@/lib/ai/prompts";
 import { getCurrentSeason, getSeasonalIngredients } from "@/lib/seasons";
 import { getOrCreateHousehold } from "@/app/settings/actions";
+import { db } from "@/lib/db";
 
 export async function POST() {
   try {
@@ -24,6 +25,28 @@ export async function POST() {
     const dislikedIngredients: string[] = JSON.parse(
       household.dislikedIngredients
     );
+    const busyDays: number[] = JSON.parse(household.busyDays);
+    const preferredCookingMethods: string[] = JSON.parse(
+      household.preferredCookingMethods
+    );
+
+    // Get pantry items for context
+    const pantryItems = await db.pantryItem.findMany({
+      where: { householdId: household.id },
+      select: { name: true },
+    });
+    const pantryItemNames = pantryItems.map((p) => p.name);
+
+    // Get meal rating history for context
+    const mealRatings = await db.mealRating.findMany({
+      orderBy: { createdAt: "desc" },
+      take: 30,
+      select: { mealName: true, rating: true },
+    });
+    const mealHistory = mealRatings.map((r) => ({
+      name: r.mealName,
+      rating: r.rating,
+    }));
 
     const { system, user } = buildWeeklyPlanPrompt(
       season,
@@ -33,6 +56,12 @@ export async function POST() {
         allergies,
         likedIngredients,
         dislikedIngredients,
+        busyDays,
+        pickyEaterMode: household.pickyEaterMode,
+        weeklyBudget: household.weeklyBudget,
+        preferredCookingMethods,
+        pantryItems: pantryItemNames,
+        mealHistory,
       },
       household.children,
       {
@@ -53,6 +82,7 @@ export async function POST() {
       plan: object,
       season,
       householdId: household.id,
+      planWeeks: household.planWeeks,
     });
   } catch (error) {
     console.error("Plan generation failed:", error);

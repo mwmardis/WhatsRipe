@@ -7,86 +7,151 @@ datasource db {
 }
 
 model HouseholdProfile {
-  id                String   @id @default(cuid())
-  dietaryPreferences String  @default("[]") // JSON array of strings
-  allergies          String  @default("[]") // JSON array of strings
-  likedIngredients   String  @default("[]") // JSON array of strings
-  dislikedIngredients String @default("[]") // JSON array of strings
-  planBreakfast      Boolean @default(false)
-  planLunch          Boolean @default(false)
-  useSeasonalFoods    Boolean  @default(true)
-  children           Child[]
-  weeklyPlans        WeeklyPlan[]
-  createdAt          DateTime @default(now())
-  updatedAt          DateTime @updatedAt
+  id                      String   @id @default(cuid())
+  dietaryPreferences      String   @default("[]") // JSON array of strings
+  allergies               String   @default("[]") // JSON array of strings
+  likedIngredients        String   @default("[]") // JSON array of strings
+  dislikedIngredients     String   @default("[]") // JSON array of strings
+  planBreakfast           Boolean  @default(false)
+  planLunch               Boolean  @default(false)
+  useSeasonalFoods        Boolean  @default(true)
+  // Family features
+  busyDays                String   @default("[]") // JSON array of day indices (0-6) for quick meals
+  pickyEaterMode          Boolean  @default(false) // hidden veggie / deconstructed meals
+  weeklyBudget            Float?   // optional weekly grocery budget
+  mealPrepDay             Int?     // day of week (0=Mon, 6=Sun) for batch prep
+  planWeeks               Int      @default(1) // number of weeks to plan (1-4)
+  preferredCookingMethods String   @default("[]") // JSON: "standard", "slow-cooker", "instant-pot"
+  calendarExportEnabled   Boolean  @default(false)
+  children                Child[]
+  weeklyPlans             WeeklyPlan[]
+  pantryItems             PantryItem[]
+  familyMembers           FamilyMember[]
+  createdAt               DateTime @default(now())
+  updatedAt               DateTime @updatedAt
 }
 
 model Child {
-  id          String   @id @default(cuid())
-  name        String
-  birthdate   DateTime
-  allergies   String   @default("[]") // JSON array of strings
-  feedingApproach String   @default("combination")
-  householdId String
-  household   HouseholdProfile @relation(fields: [householdId], references: [id], onDelete: Cascade)
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  id              String        @id @default(cuid())
+  name            String
+  birthdate       DateTime
+  allergies       String        @default("[]") // JSON array of strings
+  feedingApproach String        @default("combination")
+  householdId     String
+  household       HouseholdProfile @relation(fields: [householdId], references: [id], onDelete: Cascade)
+  allergenLogs    AllergenLog[]
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
 }
 
 model WeeklyPlan {
-  id          String   @id @default(cuid())
+  id          String       @id @default(cuid())
   weekStart   DateTime
   householdId String
   household   HouseholdProfile @relation(fields: [householdId], references: [id], onDelete: Cascade)
   dailyPlans  DailyPlan[]
   groceryList GroceryList?
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
 }
 
 model DailyPlan {
-  id           String   @id @default(cuid())
-  dayOfWeek    Int      // 0=Monday, 6=Sunday
+  id           String     @id @default(cuid())
+  dayOfWeek    Int        // 0=Monday, 6=Sunday
   weeklyPlanId String
   weeklyPlan   WeeklyPlan @relation(fields: [weeklyPlanId], references: [id], onDelete: Cascade)
   meals        Meal[]
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
+  createdAt    DateTime   @default(now())
+  updatedAt    DateTime   @updatedAt
 
   @@unique([weeklyPlanId, dayOfWeek])
 }
 
 model Meal {
-  id                  String   @id @default(cuid())
-  mealType            String   // "dinner", "breakfast", "lunch"
+  id                  String       @id @default(cuid())
+  mealType            String       // "dinner", "breakfast", "lunch"
   name                String
   description         String
-  seasonalIngredients String   @default("[]") // JSON array of strings
-  recipe              String?  // JSON: { ingredients: [], steps: [], prepTime: int, cookTime: int }
-  babyAdaptations     String?  // JSON: { "6-12mo": { ... }, "12-18mo": { ... }, ... }
+  seasonalIngredients String       @default("[]") // JSON array of strings
+  recipe              String?      // JSON: { ingredients: [], steps: [], prepTime, cookTime }
+  babyAdaptations     String?      // JSON: adaptations array
+  // Family features
+  freezerFriendly     Boolean      @default(false)
+  estimatedPrepTime   Int?         // minutes
+  estimatedCookTime   Int?         // minutes
+  cookingMethod       String       @default("standard") // "standard", "slow-cooker", "instant-pot"
+  estimatedCost       Float?       // estimated cost in dollars
+  leftoverTip         String?      // suggestion for repurposing leftovers
+  kidCookingTasks     String?      // JSON array of { task, minAge }
   dailyPlanId         String
-  dailyPlan           DailyPlan @relation(fields: [dailyPlanId], references: [id], onDelete: Cascade)
-  createdAt           DateTime @default(now())
-  updatedAt           DateTime @updatedAt
+  dailyPlan           DailyPlan    @relation(fields: [dailyPlanId], references: [id], onDelete: Cascade)
+  ratings             MealRating[]
+  createdAt           DateTime     @default(now())
+  updatedAt           DateTime     @updatedAt
+}
+
+model MealRating {
+  id        String   @id @default(cuid())
+  mealName  String   // store meal name for historical tracking
+  rating    String   // "loved", "ok", "refused"
+  notes     String?
+  mealId    String
+  meal      Meal     @relation(fields: [mealId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
 }
 
 model GroceryList {
-  id           String   @id @default(cuid())
-  weeklyPlanId String   @unique
-  weeklyPlan   WeeklyPlan @relation(fields: [weeklyPlanId], references: [id], onDelete: Cascade)
+  id           String        @id @default(cuid())
+  weeklyPlanId String        @unique
+  weeklyPlan   WeeklyPlan    @relation(fields: [weeklyPlanId], references: [id], onDelete: Cascade)
   items        GroceryItem[]
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
 }
 
 model GroceryItem {
-  id            String   @id @default(cuid())
+  id            String      @id @default(cuid())
   name          String
   quantity      Float
   unit          String
-  storeSection  String   // "produce", "dairy", "meat", "pantry", "frozen"
-  checked       Boolean  @default(false)
-  manuallyAdded Boolean  @default(false)
+  storeSection  String      // "produce", "dairy", "meat", "pantry", "frozen"
+  checked       Boolean     @default(false)
+  manuallyAdded Boolean     @default(false)
   groceryListId String
   groceryList   GroceryList @relation(fields: [groceryListId], references: [id], onDelete: Cascade)
+}
+
+model PantryItem {
+  id          String    @id @default(cuid())
+  name        String
+  quantity    Float     @default(1)
+  unit        String    @default("count")
+  category    String    @default("pantry") // "produce", "dairy", "meat", "pantry", "frozen", "spice"
+  expiresAt   DateTime?
+  householdId String
+  household   HouseholdProfile @relation(fields: [householdId], references: [id], onDelete: Cascade)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+}
+
+model AllergenLog {
+  id           String   @id @default(cuid())
+  allergen     String   // "peanuts", "eggs", etc.
+  introducedAt DateTime @default(now())
+  reaction     String   @default("none") // "none", "mild", "moderate", "severe"
+  notes        String?
+  childId      String
+  child        Child    @relation(fields: [childId], references: [id], onDelete: Cascade)
+  createdAt    DateTime @default(now())
+}
+
+model FamilyMember {
+  id          String   @id @default(cuid())
+  name        String
+  email       String?
+  role        String   @default("member") // "admin", "member", "viewer"
+  householdId String
+  household   HouseholdProfile @relation(fields: [householdId], references: [id], onDelete: Cascade)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
 }

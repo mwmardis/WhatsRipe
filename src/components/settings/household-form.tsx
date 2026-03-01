@@ -6,6 +6,13 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { updateHousehold } from "@/app/settings/actions";
 import { X, Check } from "lucide-react";
 
@@ -32,6 +39,14 @@ const COMMON_ALLERGIES = [
   "sesame",
 ];
 
+const DAY_NAMES = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
+
+const COOKING_METHODS = [
+  { value: "standard", label: "Standard" },
+  { value: "slow-cooker", label: "Slow Cooker" },
+  { value: "instant-pot", label: "Instant Pot" },
+];
+
 interface HouseholdData {
   dietaryPreferences: string;
   allergies: string;
@@ -40,6 +55,12 @@ interface HouseholdData {
   planBreakfast: boolean;
   planLunch: boolean;
   useSeasonalFoods: boolean;
+  busyDays: string;
+  pickyEaterMode: boolean;
+  weeklyBudget: number | null;
+  mealPrepDay: number | null;
+  planWeeks: number;
+  preferredCookingMethods: string;
 }
 
 interface HouseholdFormProps {
@@ -47,6 +68,15 @@ interface HouseholdFormProps {
 }
 
 function parseJsonArray(value: string): string[] {
+  try {
+    const parsed = JSON.parse(value);
+    return Array.isArray(parsed) ? parsed : [];
+  } catch {
+    return [];
+  }
+}
+
+function parseJsonNumberArray(value: string): number[] {
   try {
     const parsed = JSON.parse(value);
     return Array.isArray(parsed) ? parsed : [];
@@ -149,11 +179,21 @@ export function HouseholdForm({ initialData }: HouseholdFormProps) {
   const [dislikedIngredients, setDislikedIngredients] = useState<string[]>(
     parseJsonArray(initialData.dislikedIngredients)
   );
-  const [planBreakfast, setPlanBreakfast] = useState(
-    initialData.planBreakfast
-  );
+  const [planBreakfast, setPlanBreakfast] = useState(initialData.planBreakfast);
   const [planLunch, setPlanLunch] = useState(initialData.planLunch);
   const [useSeasonalFoods, setUseSeasonalFoods] = useState(initialData.useSeasonalFoods);
+  const [busyDays, setBusyDays] = useState<number[]>(
+    parseJsonNumberArray(initialData.busyDays)
+  );
+  const [pickyEaterMode, setPickyEaterMode] = useState(initialData.pickyEaterMode);
+  const [weeklyBudget, setWeeklyBudget] = useState<string>(
+    initialData.weeklyBudget?.toString() ?? ""
+  );
+  const [mealPrepDay, setMealPrepDay] = useState<number | null>(initialData.mealPrepDay);
+  const [planWeeks, setPlanWeeks] = useState(initialData.planWeeks);
+  const [preferredCookingMethods, setPreferredCookingMethods] = useState<string[]>(
+    parseJsonArray(initialData.preferredCookingMethods)
+  );
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
 
@@ -175,6 +215,20 @@ export function HouseholdForm({ initialData }: HouseholdFormProps) {
     []
   );
 
+  const toggleBusyDay = (day: number) => {
+    setBusyDays((prev) =>
+      prev.includes(day) ? prev.filter((d) => d !== day) : [...prev, day]
+    );
+    setSaved(false);
+  };
+
+  const toggleCookingMethod = (method: string) => {
+    setPreferredCookingMethods((prev) =>
+      prev.includes(method) ? prev.filter((m) => m !== method) : [...prev, method]
+    );
+    setSaved(false);
+  };
+
   const handleSave = async () => {
     setSaving(true);
     try {
@@ -186,6 +240,12 @@ export function HouseholdForm({ initialData }: HouseholdFormProps) {
         planBreakfast,
         planLunch,
         useSeasonalFoods,
+        busyDays,
+        pickyEaterMode,
+        weeklyBudget: weeklyBudget ? parseFloat(weeklyBudget) : null,
+        mealPrepDay,
+        planWeeks,
+        preferredCookingMethods,
       });
       setSaved(true);
     } finally {
@@ -241,6 +301,7 @@ export function HouseholdForm({ initialData }: HouseholdFormProps) {
           placeholder="Add disliked ingredient..."
         />
 
+        {/* Meal Planning Toggles */}
         <div className="space-y-4 pt-2 border-t border-border/40">
           <div className="flex items-center justify-between pt-4">
             <div>
@@ -298,6 +359,164 @@ export function HouseholdForm({ initialData }: HouseholdFormProps) {
               }}
             />
           </div>
+
+          <div className="flex items-center justify-between">
+            <div>
+              <Label htmlFor="picky-eater" className="font-semibold text-sm">
+                Picky Eater Mode
+              </Label>
+              <p className="text-[13px] text-muted-foreground">
+                Hidden veggies &amp; deconstructed meal options.
+              </p>
+            </div>
+            <Switch
+              id="picky-eater"
+              checked={pickyEaterMode}
+              onCheckedChange={(checked) => {
+                setPickyEaterMode(checked);
+                setSaved(false);
+              }}
+            />
+          </div>
+        </div>
+
+        {/* Multi-Week Planning */}
+        <div className="space-y-3 pt-2 border-t border-border/40">
+          <div className="pt-4">
+            <Label className="font-semibold text-sm">Plan Ahead</Label>
+            <p className="text-[13px] text-muted-foreground">
+              Number of weeks to generate meal plans for.
+            </p>
+          </div>
+          <div className="flex gap-2">
+            {[1, 2, 3, 4].map((weeks) => (
+              <button
+                key={weeks}
+                type="button"
+                onClick={() => {
+                  setPlanWeeks(weeks);
+                  setSaved(false);
+                }}
+                className={`rounded-lg border px-4 py-2 text-sm font-medium transition-colors ${
+                  planWeeks === weeks
+                    ? "border-primary bg-primary/10 text-primary"
+                    : "border-border hover:bg-muted/50"
+                }`}
+              >
+                {weeks}w
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* Busy Days */}
+        <div className="space-y-3 pt-2 border-t border-border/40">
+          <div className="pt-4">
+            <Label className="font-semibold text-sm">Busy Days</Label>
+            <p className="text-[13px] text-muted-foreground">
+              Get quick meals (&lt;20 min prep) on hectic days.
+            </p>
+          </div>
+          <div className="flex gap-1.5">
+            {DAY_NAMES.map((name, i) => (
+              <button
+                key={i}
+                type="button"
+                onClick={() => toggleBusyDay(i)}
+                className={`rounded-lg border px-2.5 py-1.5 text-xs font-medium transition-colors ${
+                  busyDays.includes(i)
+                    ? "border-primary bg-primary/10 text-primary"
+                    : "border-border hover:bg-muted/50"
+                }`}
+              >
+                {name}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* Cooking Methods */}
+        <div className="space-y-3 pt-2 border-t border-border/40">
+          <div className="pt-4">
+            <Label className="font-semibold text-sm">Preferred Cooking Methods</Label>
+            <p className="text-[13px] text-muted-foreground">
+              Include slow cooker or instant pot meals in your plans.
+            </p>
+          </div>
+          <div className="flex gap-2">
+            {COOKING_METHODS.map(({ value, label }) => (
+              <button
+                key={value}
+                type="button"
+                onClick={() => toggleCookingMethod(value)}
+                className={`rounded-lg border px-3 py-2 text-xs font-medium transition-colors ${
+                  preferredCookingMethods.includes(value)
+                    ? "border-primary bg-primary/10 text-primary"
+                    : "border-border hover:bg-muted/50"
+                }`}
+              >
+                {label}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* Budget */}
+        <div className="space-y-3 pt-2 border-t border-border/40">
+          <div className="pt-4">
+            <Label htmlFor="weekly-budget" className="font-semibold text-sm">
+              Weekly Budget
+            </Label>
+            <p className="text-[13px] text-muted-foreground">
+              Set a target to get budget-friendly meal suggestions.
+            </p>
+          </div>
+          <div className="flex items-center gap-2">
+            <span className="text-sm text-muted-foreground">$</span>
+            <Input
+              id="weekly-budget"
+              type="number"
+              min="0"
+              step="10"
+              value={weeklyBudget}
+              onChange={(e) => {
+                setWeeklyBudget(e.target.value);
+                setSaved(false);
+              }}
+              placeholder="e.g., 150"
+              className="rounded-lg w-32"
+            />
+            <span className="text-[13px] text-muted-foreground">/ week</span>
+          </div>
+        </div>
+
+        {/* Meal Prep Day */}
+        <div className="space-y-3 pt-2 border-t border-border/40">
+          <div className="pt-4">
+            <Label className="font-semibold text-sm">Meal Prep Day</Label>
+            <p className="text-[13px] text-muted-foreground">
+              Choose a day for batch cooking prep schedules.
+            </p>
+          </div>
+          <Select
+            value={mealPrepDay !== null ? mealPrepDay.toString() : "none"}
+            onValueChange={(val) => {
+              setMealPrepDay(val === "none" ? null : parseInt(val));
+              setSaved(false);
+            }}
+          >
+            <SelectTrigger className="w-40 rounded-lg">
+              <SelectValue placeholder="No prep day" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="none">No prep day</SelectItem>
+              {DAY_NAMES.map((name, i) => (
+                <SelectItem key={i} value={i.toString()}>
+                  {name === "Mon" ? "Monday" : name === "Tue" ? "Tuesday" : name === "Wed" ? "Wednesday" : name === "Thu" ? "Thursday" : name === "Fri" ? "Friday" : name === "Sat" ? "Saturday" : "Sunday"}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
         </div>
 
         <Button

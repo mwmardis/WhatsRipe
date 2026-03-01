@@ -4,7 +4,9 @@ import { getLatestPlan } from "@/app/actions/plan-actions";
 import { getCurrentSeason, getSeasonalIngredients } from "@/lib/seasons";
 import { SeasonIndicator } from "@/components/planner/season-indicator";
 import { GenerateButton } from "@/components/planner/generate-button";
+import { CalendarExport } from "@/components/planner/calendar-export";
 import { WeeklyView, EmptyState } from "@/components/planner/weekly-view";
+import { GrowthMilestones } from "@/components/meal/growth-milestones";
 
 export default async function Home() {
   const household = await getOrCreateHousehold();
@@ -38,8 +40,19 @@ export default async function Home() {
       name: meal.name,
       description: meal.description,
       seasonalIngredients: JSON.parse(meal.seasonalIngredients) as string[],
+      freezerFriendly: meal.freezerFriendly,
+      estimatedPrepTime: meal.estimatedPrepTime,
+      estimatedCookTime: meal.estimatedCookTime,
+      cookingMethod: meal.cookingMethod,
+      estimatedCost: meal.estimatedCost,
+      rating: meal.ratings?.[0]?.rating ?? null,
     })),
   }));
+
+  // Calculate weekly cost estimate
+  const weeklyCost = plan?.dailyPlans
+    .flatMap((dp) => dp.meals)
+    .reduce((sum, meal) => sum + (meal.estimatedCost ?? 0), 0);
 
   return (
     <div className="flex flex-col gap-6 px-4 pt-6 pb-28">
@@ -81,6 +94,31 @@ export default async function Home() {
       )}
 
       <GenerateButton householdId={household.id} season={season} />
+
+      {/* Budget & calendar row */}
+      {plan && (
+        <div className="flex items-center gap-3 animate-fade-up-delay-1">
+          {weeklyCost != null && weeklyCost > 0 && (
+            <div className="flex items-center gap-1.5 text-sm text-muted-foreground">
+              <span className="font-medium">Est. weekly cost:</span>
+              <span className="font-semibold text-foreground">${weeklyCost.toFixed(0)}</span>
+              {household.weeklyBudget && (
+                <span className={`text-xs ${weeklyCost > household.weeklyBudget ? "text-red-500" : "text-emerald-600"}`}>
+                  / ${household.weeklyBudget}
+                </span>
+              )}
+            </div>
+          )}
+          <div className="ml-auto">
+            <CalendarExport />
+          </div>
+        </div>
+      )}
+
+      {/* Growth milestones for young children */}
+      {children.length > 0 && (
+        <GrowthMilestones children={children} />
+      )}
 
       {plan && parsedDailyPlans ? (
         <WeeklyView

@@ -4,13 +4,13 @@ import { db } from "@/lib/db";
 
 export async function getOrCreateHousehold() {
   let household = await db.householdProfile.findFirst({
-    include: { children: true },
+    include: { children: true, familyMembers: true },
   });
 
   if (!household) {
     household = await db.householdProfile.create({
       data: {},
-      include: { children: true },
+      include: { children: true, familyMembers: true },
     });
   }
 
@@ -25,6 +25,12 @@ export async function updateHousehold(data: {
   planBreakfast: boolean;
   planLunch: boolean;
   useSeasonalFoods: boolean;
+  busyDays: number[];
+  pickyEaterMode: boolean;
+  weeklyBudget: number | null;
+  mealPrepDay: number | null;
+  planWeeks: number;
+  preferredCookingMethods: string[];
 }) {
   const household = await getOrCreateHousehold();
 
@@ -38,6 +44,12 @@ export async function updateHousehold(data: {
       planBreakfast: data.planBreakfast,
       planLunch: data.planLunch,
       useSeasonalFoods: data.useSeasonalFoods,
+      busyDays: JSON.stringify(data.busyDays),
+      pickyEaterMode: data.pickyEaterMode,
+      weeklyBudget: data.weeklyBudget,
+      mealPrepDay: data.mealPrepDay,
+      planWeeks: data.planWeeks,
+      preferredCookingMethods: JSON.stringify(data.preferredCookingMethods),
     },
     include: { children: true },
   });
