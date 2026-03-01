@@ -1,3 +1,5 @@
+export const dynamic = "force-dynamic";
+
 import { getOrCreateHousehold } from "./actions";
 import { HouseholdForm } from "@/components/settings/household-form";
 import { ChildrenManager } from "@/components/settings/children-manager";

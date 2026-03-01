@@ -1,3 +1,5 @@
+export const dynamic = "force-dynamic";
+
 import { getPantryItems } from "@/app/actions/pantry-actions";
 import { PantryView } from "@/components/pantry/pantry-view";
 

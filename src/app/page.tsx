@@ -1,3 +1,5 @@
+export const dynamic = "force-dynamic";
+
 import Link from "next/link";
 import { getOrCreateHousehold } from "@/app/settings/actions";
 import { getLatestPlan } from "@/app/actions/plan-actions";

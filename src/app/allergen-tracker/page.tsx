@@ -1,3 +1,5 @@
+export const dynamic = "force-dynamic";
+
 import { getOrCreateHousehold } from "@/app/settings/actions";
 import { AllergenTrackerView } from "@/components/allergen/allergen-tracker-view";
 import { db } from "@/lib/db";
