@@ -32,7 +32,7 @@ function buildChildrenContext(children: Child[]): string {
       : "";
 
     const ageMonths = Math.floor(
-      (Date.now() - child.birthdate.getTime()) / (1000 * 60 * 60 * 24 * 30.44)
+      (Date.now() - child.birthdate.getTime()) / (1000 * 60 * 60 * 24 * 30.4375)
     );
     const ageYears = Math.floor(ageMonths / 12);
 
