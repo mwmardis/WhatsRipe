@@ -7,7 +7,8 @@ import { getCurrentSeason, getSeasonalIngredients } from "@/lib/seasons";
 import { SeasonIndicator } from "@/components/planner/season-indicator";
 import { GenerateButton } from "@/components/planner/generate-button";
 import { CalendarExport } from "@/components/planner/calendar-export";
-import { WeeklyView, EmptyState } from "@/components/planner/weekly-view";
+import { EmptyState } from "@/components/planner/weekly-view";
+import { WeeklyViewClient } from "@/components/planner/weekly-view-client";
 import { GrowthMilestones } from "@/components/meal/growth-milestones";
 
 export default async function Home() {
@@ -132,7 +133,7 @@ export default async function Home() {
       )}
 
       {plan && parsedDailyPlans ? (
-        <WeeklyView
+        <WeeklyViewClient
           weekStart={new Date(plan.weekStart)}
           dailyPlans={parsedDailyPlans}
           children={children}

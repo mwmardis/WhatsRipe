@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { ChevronDown, ChevronUp, Timer } from "lucide-react";
+import { ChevronDown, ChevronUp, Timer, X } from "lucide-react";
 import { MealCard } from "./meal-card";
 
 interface ChildInfo {
@@ -37,13 +37,15 @@ interface BatchCookingSuggestion {
   timesSaved: string;
 }
 
-interface WeeklyViewProps {
+export interface WeeklyViewProps {
   weekStart: Date;
   dailyPlans: DailyPlanData[];
   children: ChildInfo[];
   weekLabel?: string;
   batchCookingSuggestions?: BatchCookingSuggestion[];
   mealPrepDay?: string;
+  onDeleteMeal?: (mealId: string) => void;
+  onSkipDay?: (dailyPlanId: string) => void;
 }
 
 const DAY_NAMES = [
@@ -79,6 +81,8 @@ export function WeeklyView({
   weekLabel,
   batchCookingSuggestions,
   mealPrepDay,
+  onDeleteMeal,
+  onSkipDay,
 }: WeeklyViewProps) {
   const [prepExpanded, setPrepExpanded] = useState(false);
 
@@ -136,34 +140,51 @@ export function WeeklyView({
         return (
           <div key={day.id} className="flex flex-col gap-3">
             {/* Day header */}
-            <div className="flex items-baseline gap-2.5 sticky top-0 bg-background/90 backdrop-blur-sm py-2.5 z-10">
+            <div className="group/day flex items-baseline gap-2.5 sticky top-0 bg-background/90 backdrop-blur-sm py-2.5 z-10">
               <h3 className="font-display text-lg font-semibold tracking-tight text-foreground">
                 {DAY_NAMES[day.dayOfWeek]}
               </h3>
               <span className="text-sm text-muted-foreground font-medium">
                 {formatDate(weekStart, day.dayOfWeek)}
               </span>
+              {onSkipDay && day.meals.length > 0 && (
+                <button
+                  onClick={() => onSkipDay(day.id)}
+                  className="ml-auto hidden group-hover/day:flex h-6 items-center gap-1 rounded-full px-2 text-xs text-muted-foreground hover:bg-destructive hover:text-destructive-foreground transition-colors"
+                  aria-label={`Skip ${DAY_NAMES[day.dayOfWeek]}`}
+                >
+                  <X className="h-3 w-3" />
+                  Skip day
+                </button>
+              )}
             </div>
 
             {/* Meals */}
             <div className="flex flex-col gap-2.5">
-              {sortedMeals.map((meal) => (
-                <MealCard
-                  key={meal.id}
-                  id={meal.id}
-                  name={meal.name}
-                  description={meal.description}
-                  seasonalIngredients={meal.seasonalIngredients}
-                  mealType={meal.mealType}
-                  children={children}
-                  freezerFriendly={meal.freezerFriendly}
-                  estimatedPrepTime={meal.estimatedPrepTime}
-                  estimatedCookTime={meal.estimatedCookTime}
-                  cookingMethod={meal.cookingMethod}
-                  estimatedCost={meal.estimatedCost}
-                  rating={meal.rating}
-                />
-              ))}
+              {sortedMeals.length === 0 ? (
+                <div className="flex items-center justify-center rounded-xl border border-dashed border-border/60 py-8 text-sm text-muted-foreground">
+                  No meals planned
+                </div>
+              ) : (
+                sortedMeals.map((meal) => (
+                  <MealCard
+                    key={meal.id}
+                    id={meal.id}
+                    name={meal.name}
+                    description={meal.description}
+                    seasonalIngredients={meal.seasonalIngredients}
+                    mealType={meal.mealType}
+                    children={children}
+                    freezerFriendly={meal.freezerFriendly}
+                    estimatedPrepTime={meal.estimatedPrepTime}
+                    estimatedCookTime={meal.estimatedCookTime}
+                    cookingMethod={meal.cookingMethod}
+                    estimatedCost={meal.estimatedCost}
+                    rating={meal.rating}
+                    onDelete={onDeleteMeal}
+                  />
+                ))
+              )}
             </div>
 
             {/* Subtle divider between days */}
