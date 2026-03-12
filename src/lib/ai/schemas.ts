@@ -32,7 +32,7 @@ export const batchCookingSuggestionSchema = z.object({
 });
 
 export const weeklyPlanSchema = z.object({
-  days: z.array(dailyPlanSchema).length(7),
+  days: z.array(dailyPlanSchema).min(1).max(7),
   batchCookingSuggestions: z.array(batchCookingSuggestionSchema),
 });
 

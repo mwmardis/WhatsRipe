@@ -9,7 +9,8 @@ const MEAL_TYPES = ["dinner", "breakfast", "lunch"] as const;
 export async function savePlan(
   householdId: string,
   weeklyPlanData: WeeklyPlanOutput,
-  weekOffset: number = 0
+  weekOffset: number = 0,
+  startDayIndex: number = 0
 ) {
   // weekStart = Monday of the target week
   const now = new Date();
@@ -29,8 +30,9 @@ export async function savePlan(
     },
   });
 
-  for (let dayIndex = 0; dayIndex < 7; dayIndex++) {
-    const dayData = weeklyPlanData.days[dayIndex];
+  for (let i = 0; i < weeklyPlanData.days.length; i++) {
+    const dayIndex = startDayIndex + i;
+    const dayData = weeklyPlanData.days[i];
 
     const dailyPlan = await db.dailyPlan.create({
       data: {

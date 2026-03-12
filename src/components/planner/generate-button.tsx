@@ -27,6 +27,14 @@ export function GenerateButton({ householdId, season }: GenerateButtonProps) {
 
   const colors = season ? seasonButtonColors[season] : undefined;
 
+  const now = new Date();
+  const jsDay = now.getDay();
+  const todayIndex = jsDay === 0 ? 6 : jsDay - 1;
+  const dayNames = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
+  const buttonLabel = todayIndex === 0
+    ? "Generate This Week"
+    : `Generate ${dayNames[todayIndex]}\u2013Sunday`;
+
   async function handleGenerate() {
     setIsLoading(true);
     setError(null);
@@ -44,7 +52,7 @@ export function GenerateButton({ householdId, season }: GenerateButtonProps) {
       const planWeeks = data.planWeeks ?? 1;
 
       // Save first week
-      await savePlan(data.householdId, data.plan, 0);
+      await savePlan(data.householdId, data.plan, 0, data.startDayIndex ?? 0);
 
       // Generate and save additional weeks if multi-week planning
       for (let week = 1; week < planWeeks; week++) {
@@ -53,7 +61,7 @@ export function GenerateButton({ householdId, season }: GenerateButtonProps) {
         });
         if (weekResponse.ok) {
           const weekData = await weekResponse.json();
-          await savePlan(data.householdId, weekData.plan, week);
+          await savePlan(data.householdId, weekData.plan, week, 0);
         }
       }
 
@@ -91,7 +99,7 @@ export function GenerateButton({ householdId, season }: GenerateButtonProps) {
         ) : (
           <>
             <Sparkles className="h-4.5 w-4.5 transition-transform duration-300 group-hover:rotate-12" />
-            <span>Generate This Week</span>
+            <span>{buttonLabel}</span>
           </>
         )}
       </Button>

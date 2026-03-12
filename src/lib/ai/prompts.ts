@@ -127,8 +127,21 @@ export function buildWeeklyPlanPrompt(
   household: HouseholdContext,
   children: Child[],
   mealTypes: { breakfast: boolean; lunch: boolean },
-  useSeasonalFoods: boolean = true
+  useSeasonalFoods: boolean = true,
+  startDayIndex: number = 0
 ): { system: string; user: string } {
+  const numDays = 7 - startDayIndex;
+  const dayNames = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
+  const startDayName = dayNames[startDayIndex];
+  const planDaysDescription = startDayIndex === 0
+    ? "Always return exactly 7 days of meals (Monday through Sunday)."
+    : `Return exactly ${numDays} days of meals (${startDayName} through Sunday).`;
+
+  const dayCount = 7 - startDayIndex;
+  const planLabel = startDayIndex === 0
+    ? "a 7-day meal plan"
+    : `a ${dayCount}-day meal plan (${startDayName} through Sunday)`;
+
   const hasChildren = children.length > 0;
   const childAges = children.map((c) => {
     return Math.floor(
@@ -140,7 +153,7 @@ export function buildWeeklyPlanPrompt(
 
 ${hasChildren ? "When children are present, ensure meals are family-friendly and can be adapted for younger eaters. " : ""}${useSeasonalFoods ? "Each meal should feature at least one seasonal ingredient prominently." : ""}
 
-Always return exactly 7 days of meals (Monday through Sunday). Each day MUST have a dinner. Breakfast and lunch are included only if requested.
+${planDaysDescription} Each day MUST have a dinner. Breakfast and lunch are included only if requested.
 
 For each meal provide:
 - name: a concise, appealing meal name
@@ -157,7 +170,7 @@ For each meal provide:
 Also analyze the complete weekly plan and provide batch cooking suggestions. Identify ingredients or components that appear in multiple meals across the week. For each, suggest how to prepare them in advance to save time. Include what to prep, which meals use it, how to store it, and estimated time savings.`;
 
   let user = useSeasonalFoods
-    ? `Create a 7-day meal plan for the current season: ${season}.
+    ? `Create ${planLabel} for the current season: ${season}.
 
 Available seasonal ingredients: ${seasonalIngredients.join(", ")}.
 
@@ -165,7 +178,7 @@ Meal types to plan for each day:
 - Dinner: YES (always)
 - Breakfast: ${mealTypes.breakfast ? "YES" : "NO"}
 - Lunch: ${mealTypes.lunch ? "YES" : "NO"}`
-    : `Create a 7-day meal plan.
+    : `Create ${planLabel}.
 
 Meal types to plan for each day:
 - Dinner: YES (always)

@@ -13,6 +13,10 @@ export async function POST() {
   try {
     const household = await getOrCreateHousehold();
 
+    const now = new Date();
+    const jsDay = now.getDay(); // 0=Sun, 1=Mon, ...
+    const startDayIndex = jsDay === 0 ? 6 : jsDay - 1; // Convert to 0=Mon, 6=Sun
+
     const season = getCurrentSeason();
     const ingredients = getSeasonalIngredients(season);
     const ingredientNames = ingredients.map((i) => i.name);
@@ -80,7 +84,8 @@ export async function POST() {
         breakfast: household.planBreakfast,
         lunch: household.planLunch,
       },
-      household.useSeasonalFoods
+      household.useSeasonalFoods,
+      startDayIndex
     );
 
     const { object } = await generateObject({
@@ -95,6 +100,7 @@ export async function POST() {
       season,
       householdId: household.id,
       planWeeks: household.planWeeks,
+      startDayIndex,
     });
   } catch (error) {
     console.error("Plan generation failed:", error);
