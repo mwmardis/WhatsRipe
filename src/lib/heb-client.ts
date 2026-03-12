@@ -15,6 +15,11 @@ async function hebGraphQL(config: HebConfig, operations: unknown[]) {
     method: "POST",
     headers: {
       "content-type": "application/json",
+      accept: "application/json",
+      "user-agent":
+        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/134.0.0.0 Safari/537.36",
+      origin: "https://www.heb.com",
+      referer: "https://www.heb.com/shopping-list",
       cookie: `sst=${config.sessionToken}`,
     },
     body: JSON.stringify(operations),
@@ -25,6 +30,13 @@ async function hebGraphQL(config: HebConfig, operations: unknown[]) {
       throw new Error("HEB session expired. Please update your HEB token in settings.");
     }
     throw new Error(`HEB API error: ${res.status}`);
+  }
+
+  const contentType = res.headers.get("content-type") ?? "";
+  if (!contentType.includes("application/json")) {
+    throw new Error(
+      "HEB session expired or invalid. Please update your HEB token in settings."
+    );
   }
 
   return res.json();
