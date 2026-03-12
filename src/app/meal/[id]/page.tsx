@@ -8,6 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { getMeal } from "@/app/actions/meal-actions";
 import { getOrCreateHousehold } from "@/app/settings/actions";
+import { MealImage } from "@/components/meal/meal-image";
 import { MealDetailClient } from "./client";
 
 interface MealPageProps {
@@ -63,6 +64,9 @@ export default async function MealPage({ params }: MealPageProps) {
           Back to Planner
         </Link>
       </Button>
+
+      {/* AI-generated meal image */}
+      <MealImage mealId={meal.id} initialImageUrl={meal.imageUrl ?? null} />
 
       {/* Meal header */}
       <div className="flex flex-col gap-3 animate-fade-up">

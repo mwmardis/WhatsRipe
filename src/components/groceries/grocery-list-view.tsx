@@ -2,7 +2,8 @@
 
 import { useState, useTransition } from "react";
 import { Button } from "@/components/ui/button";
-import { Loader2, ShoppingCart, Trash2, RefreshCw } from "lucide-react";
+import { Loader2, ShoppingCart, Trash2, RefreshCw, ExternalLink, Copy } from "lucide-react";
+import { formatListForClipboard } from "@/components/groceries/copy-list-helper";
 import { GrocerySection } from "@/components/groceries/grocery-section";
 import { AddItemDialog } from "@/components/groceries/add-item-dialog";
 import { toast } from "sonner";
@@ -37,6 +38,7 @@ export function GroceryListView({
   groceryList: GroceryListData | null;
 }) {
   const [generating, setGenerating] = useState(false);
+  const [exporting, setExporting] = useState(false);
   const [clearing, startClearTransition] = useTransition();
 
   // No weekly plan at all
@@ -143,7 +145,7 @@ export function GroceryListView({
             }
           }}
           disabled={generating}
-          className="ml-auto rounded-lg"
+          className="rounded-lg"
         >
           {generating ? (
             <>
@@ -156,6 +158,64 @@ export function GroceryListView({
               Regenerate
             </>
           )}
+        </Button>
+
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={async () => {
+            setExporting(true);
+            try {
+              const res = await fetch("/api/export-heb", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ groceryListId: groceryList.id }),
+              });
+              const data = await res.json();
+              if (!res.ok) {
+                toast.error(data.error || "Export failed");
+                return;
+              }
+              toast.success(`Exported ${data.itemCount} items to HEB`, {
+                action: {
+                  label: "Open HEB",
+                  onClick: () => window.open(data.listUrl, "_blank"),
+                },
+              });
+            } catch {
+              toast.error("Failed to export to HEB");
+            } finally {
+              setExporting(false);
+            }
+          }}
+          disabled={exporting}
+          className="rounded-lg"
+        >
+          {exporting ? (
+            <>
+              <Loader2 className="size-3.5 mr-1 animate-spin" />
+              Exporting...
+            </>
+          ) : (
+            <>
+              <ExternalLink className="size-3.5 mr-1" />
+              Export to HEB
+            </>
+          )}
+        </Button>
+
+        <Button
+          variant="outline"
+          size="sm"
+          className="rounded-lg"
+          onClick={async () => {
+            const text = formatListForClipboard(groceryList.items);
+            await navigator.clipboard.writeText(text);
+            toast.success("Grocery list copied to clipboard");
+          }}
+        >
+          <Copy className="size-3.5 mr-1" />
+          Copy List
         </Button>
       </div>
 
