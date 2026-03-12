@@ -23,7 +23,8 @@ model HouseholdProfile {
   planWeeks               Int      @default(1) // number of weeks to plan (1-4)
   preferredCookingMethods String   @default("[]") // JSON: "standard", "slow-cooker", "instant-pot"
   calendarExportEnabled   Boolean  @default(false)
-  hebSessionToken         String?  // HEB sst cookie value for API auth
+  hebSessionToken         String?  // HEB sat cookie value (auto-refreshed)
+  hebSstToken             String?  // HEB sst cookie value (long-lived, ~1 year)
   hebStoreId              String?  // HEB store number (e.g. "727")
   children                Child[]
   weeklyPlans             WeeklyPlan[]

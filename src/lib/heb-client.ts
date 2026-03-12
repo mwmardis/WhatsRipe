@@ -7,10 +7,47 @@ const HASHES = {
 
 interface HebConfig {
   sessionToken: string;
+  sstToken?: string;
   storeId: string;
 }
 
+export interface RefreshedTokens {
+  sat?: string;
+  sst?: string;
+}
+
+export function parseSetCookies(cookies: string[]): RefreshedTokens {
+  const result: RefreshedTokens = {};
+  for (const cookie of cookies) {
+    const [nameValue] = cookie.split(";");
+    const eqIdx = nameValue.indexOf("=");
+    if (eqIdx === -1) continue;
+    const name = nameValue.substring(0, eqIdx);
+    const value = nameValue.substring(eqIdx + 1);
+    if (name === "sst") result.sst = value;
+    if (name === "sat") result.sat = value;
+  }
+  return result;
+}
+
+// Tracks the latest refreshed tokens from the most recent API call.
+// The export route reads this after calls complete to persist updates.
+let lastRefreshedTokens: RefreshedTokens = {};
+
+export function getLastRefreshedTokens(): RefreshedTokens {
+  return lastRefreshedTokens;
+}
+
+export function clearRefreshedTokens(): void {
+  lastRefreshedTokens = {};
+}
+
 async function hebGraphQL(config: HebConfig, operations: unknown[]) {
+  const cookieParts = [`sat=${config.sessionToken}`];
+  if (config.sstToken) {
+    cookieParts.unshift(`sst=${config.sstToken}`);
+  }
+
   const res = await fetch(HEB_GRAPHQL_URL, {
     method: "POST",
     headers: {
@@ -20,14 +57,23 @@ async function hebGraphQL(config: HebConfig, operations: unknown[]) {
         "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/134.0.0.0 Safari/537.36",
       origin: "https://www.heb.com",
       referer: "https://www.heb.com/shopping-list",
-      cookie: `sst=${config.sessionToken}`,
+      cookie: cookieParts.join("; "),
     },
     body: JSON.stringify(operations),
   });
 
+  // Parse refreshed tokens from response
+  const setCookies = res.headers.getSetCookie
+    ? res.headers.getSetCookie()
+    : [];
+  const refreshed = parseSetCookies(setCookies);
+  if (refreshed.sat || refreshed.sst) {
+    lastRefreshedTokens = { ...lastRefreshedTokens, ...refreshed };
+  }
+
   if (!res.ok) {
     if (res.status === 401 || res.status === 403) {
-      throw new Error("HEB session expired. Please update your HEB token in settings.");
+      throw new Error("HEB session expired. Please update your HEB tokens in settings.");
     }
     throw new Error(`HEB API error: ${res.status}`);
   }
@@ -35,7 +81,7 @@ async function hebGraphQL(config: HebConfig, operations: unknown[]) {
   const contentType = res.headers.get("content-type") ?? "";
   if (!contentType.includes("application/json")) {
     throw new Error(
-      "HEB session expired or invalid. Please update your HEB token in settings."
+      "HEB session expired or invalid. Please update your HEB tokens in settings."
     );
   }
 
@@ -56,11 +102,18 @@ export async function createHebShoppingList(
     },
   ]);
 
-  const listId = response?.[0]?.data?.createShoppingListV2?.id;
-  if (!listId) {
+  const gqlErrors = response?.[0]?.errors;
+  if (gqlErrors?.some((e: { extensions?: { code?: string } }) => e.extensions?.code === "UNAUTHENTICATED")) {
+    throw new Error("HEB session expired. Please update your HEB tokens in settings.");
+  }
+  const result = response?.[0]?.data?.createShoppingListV2;
+  if (result?.code === "LIST_UNIQUE_NAME") {
+    return createHebShoppingList(config, `${name} (${Date.now()})`);
+  }
+  if (!result?.id) {
     throw new Error("Failed to create HEB shopping list");
   }
-  return listId;
+  return result.id;
 }
 
 export async function addItemsToHebList(

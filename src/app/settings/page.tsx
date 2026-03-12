@@ -41,6 +41,7 @@ export default async function SettingsPage() {
             planWeeks: household.planWeeks,
             preferredCookingMethods: household.preferredCookingMethods,
             hebSessionToken: household.hebSessionToken,
+            hebSstToken: household.hebSstToken,
             hebStoreId: household.hebStoreId,
           }}
         />

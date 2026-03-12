@@ -62,6 +62,7 @@ interface HouseholdData {
   planWeeks: number;
   preferredCookingMethods: string;
   hebSessionToken: string | null;
+  hebSstToken: string | null;
   hebStoreId: string | null;
 }
 
@@ -197,6 +198,7 @@ export function HouseholdForm({ initialData }: HouseholdFormProps) {
     parseJsonArray(initialData.preferredCookingMethods)
   );
   const [hebSessionToken, setHebSessionToken] = useState(initialData.hebSessionToken ?? "");
+  const [hebSstToken, setHebSstToken] = useState(initialData.hebSstToken ?? "");
   const [hebStoreId, setHebStoreId] = useState(initialData.hebStoreId ?? "");
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
@@ -251,6 +253,7 @@ export function HouseholdForm({ initialData }: HouseholdFormProps) {
         planWeeks,
         preferredCookingMethods,
         hebSessionToken: hebSessionToken || null,
+        hebSstToken: hebSstToken || null,
         hebStoreId: hebStoreId || null,
       });
       setSaved(true);
@@ -529,10 +532,24 @@ export function HouseholdForm({ initialData }: HouseholdFormProps) {
         <div className="flex flex-col gap-3 pt-4 border-t border-border/40">
           <Label className="font-display text-base font-semibold">HEB Integration</Label>
           <p className="text-xs text-muted-foreground">
-            Export grocery lists directly to your HEB shopping list. Find your session token in your browser cookies (sst value) at heb.com.
+            Export grocery lists directly to your HEB shopping list. Find your tokens in browser DevTools at heb.com (Application → Cookies). The SST token lasts ~1 year; the SAT token auto-refreshes.
           </p>
           <div className="flex flex-col gap-2">
-            <Label htmlFor="hebSessionToken" className="text-sm">HEB Session Token</Label>
+            <Label htmlFor="hebSstToken" className="text-sm">HEB SST Token</Label>
+            <Input
+              id="hebSstToken"
+              type="password"
+              value={hebSstToken}
+              onChange={(e) => {
+                setHebSstToken(e.target.value);
+                setSaved(false);
+              }}
+              placeholder="Paste your sst cookie value (hs:sst:...)"
+              className="rounded-lg"
+            />
+          </div>
+          <div className="flex flex-col gap-2">
+            <Label htmlFor="hebSessionToken" className="text-sm">HEB SAT Token</Label>
             <Input
               id="hebSessionToken"
               type="password"
@@ -541,7 +558,7 @@ export function HouseholdForm({ initialData }: HouseholdFormProps) {
                 setHebSessionToken(e.target.value);
                 setSaved(false);
               }}
-              placeholder="Paste your sst cookie value"
+              placeholder="Paste your sat cookie value (auto-refreshed)"
               className="rounded-lg"
             />
           </div>

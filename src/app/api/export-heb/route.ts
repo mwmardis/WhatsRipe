@@ -1,7 +1,12 @@
 import { NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { getOrCreateHousehold } from "@/app/settings/actions";
-import { createHebShoppingList, addItemsToHebList } from "@/lib/heb-client";
+import {
+  createHebShoppingList,
+  addItemsToHebList,
+  getLastRefreshedTokens,
+  clearRefreshedTokens,
+} from "@/lib/heb-client";
 
 export async function POST(request: Request) {
   try {
@@ -11,7 +16,7 @@ export async function POST(request: Request) {
 
     if (!household.hebSessionToken || !household.hebStoreId) {
       return NextResponse.json(
-        { error: "HEB settings not configured. Add your HEB token and store ID in settings." },
+        { error: "HEB settings not configured. Add your HEB tokens and store ID in settings." },
         { status: 400 }
       );
     }
@@ -30,6 +35,7 @@ export async function POST(request: Request) {
 
     const config = {
       sessionToken: household.hebSessionToken,
+      sstToken: household.hebSstToken ?? undefined,
       storeId: household.hebStoreId,
     };
 
@@ -39,12 +45,27 @@ export async function POST(request: Request) {
     });
     const listName = `WhatsRipe - ${today}`;
 
+    // Clear any stale refreshed tokens before starting
+    clearRefreshedTokens();
+
     // Create list
     const listId = await createHebShoppingList(config, listName);
 
     // Add items (single batch)
     const items = groceryList.items.map((item) => ({ name: item.name }));
     await addItemsToHebList(config, listId, items);
+
+    // Persist any refreshed tokens back to the database
+    const refreshed = getLastRefreshedTokens();
+    if (refreshed.sat || refreshed.sst) {
+      await db.householdProfile.update({
+        where: { id: household.id },
+        data: {
+          ...(refreshed.sat && { hebSessionToken: refreshed.sat }),
+          ...(refreshed.sst && { hebSstToken: refreshed.sst }),
+        },
+      });
+    }
 
     const listUrl = `https://www.heb.com/shopping-list/${listId}`;
 
