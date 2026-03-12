@@ -32,7 +32,7 @@ function buildChildrenContext(children: Child[]): string {
       : "";
 
     const ageMonths = Math.floor(
-      (Date.now() - child.birthdate.getTime()) / (1000 * 60 * 60 * 24 * 30.44)
+      (Date.now() - child.birthdate.getTime()) / (1000 * 60 * 60 * 24 * 30.4375)
     );
     const ageYears = Math.floor(ageMonths / 12);
 
@@ -111,10 +111,10 @@ function buildFamilyFeaturesContext(household: HouseholdContext): string {
     const loved = household.mealHistory.filter((m) => m.rating === "loved").map((m) => m.name);
     const refused = household.mealHistory.filter((m) => m.rating === "refused").map((m) => m.name);
     if (loved.length > 0) {
-      parts.push(`FAMILY FAVORITES (similar meals welcome): ${loved.join(", ")}.`);
+      parts.push(`FAMILY FAVORITES (generate meals with similar flavors, ingredients, and cooking styles): ${loved.join(", ")}.`);
     }
     if (refused.length > 0) {
-      parts.push(`MEALS KIDS REFUSED (avoid similar): ${refused.join(", ")}.`);
+      parts.push(`MEALS FAMILY REFUSED (avoid these and meals with similar flavor profiles or main ingredients): ${refused.join(", ")}.`);
     }
   }
 
@@ -152,7 +152,9 @@ For each meal provide:
 - cookingMethod: "standard", "slow-cooker", or "instant-pot"
 - estimatedCost: estimated ingredient cost in dollars for a family of 4
 - leftoverTip: brief suggestion for how to repurpose leftovers of this meal
-- kidCookingTasks: array of age-appropriate tasks kids can help with (task description + minimum age in years)${hasChildren && childAges.some((a) => a >= 2) ? `. Include tasks for children ages ${[...new Set(childAges.filter((a) => a >= 2))].join(", ")}` : ""}`;
+- kidCookingTasks: array of age-appropriate tasks kids can help with (task description + minimum age in years)${hasChildren && childAges.some((a) => a >= 2) ? `. Include tasks for children ages ${[...new Set(childAges.filter((a) => a >= 2))].join(", ")}` : ""}
+
+Also analyze the complete weekly plan and provide batch cooking suggestions. Identify ingredients or components that appear in multiple meals across the week. For each, suggest how to prepare them in advance to save time. Include what to prep, which meals use it, how to store it, and estimated time savings.`;
 
   let user = useSeasonalFoods
     ? `Create a 7-day meal plan for the current season: ${season}.

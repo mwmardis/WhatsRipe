@@ -23,6 +23,8 @@ model HouseholdProfile {
   planWeeks               Int      @default(1) // number of weeks to plan (1-4)
   preferredCookingMethods String   @default("[]") // JSON: "standard", "slow-cooker", "instant-pot"
   calendarExportEnabled   Boolean  @default(false)
+  hebSessionToken         String?  // HEB sst cookie value for API auth
+  hebStoreId              String?  // HEB store number (e.g. "727")
   children                Child[]
   weeklyPlans             WeeklyPlan[]
   pantryItems             PantryItem[]
@@ -49,6 +51,7 @@ model WeeklyPlan {
   weekStart   DateTime
   householdId String
   household   HouseholdProfile @relation(fields: [householdId], references: [id], onDelete: Cascade)
+  batchCookingSuggestions String? // JSON array of batch cooking suggestions
   dailyPlans  DailyPlan[]
   groceryList GroceryList?
   createdAt   DateTime     @default(now())
@@ -83,6 +86,7 @@ model Meal {
   estimatedCost       Float?       // estimated cost in dollars
   leftoverTip         String?      // suggestion for repurposing leftovers
   kidCookingTasks     String?      // JSON array of { task, minAge }
+  imageUrl            String?      // cached AI-generated image (base64 data URL)
   dailyPlanId         String
   dailyPlan           DailyPlan    @relation(fields: [dailyPlanId], references: [id], onDelete: Cascade)
   ratings             MealRating[]

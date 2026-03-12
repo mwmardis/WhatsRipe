@@ -1,5 +1,6 @@
-import { describe, it, expect } from "vitest";
+import { describe, it, expect, vi, afterEach } from "vitest";
 import {
+  getFoodStage,
   getFoodStageLabel,
   needsApproachSelector,
   type FoodStage,
@@ -49,5 +50,60 @@ describe("needsApproachSelector", () => {
 
   it("returns false for 24mo+", () => {
     expect(needsApproachSelector("24mo+")).toBe(false);
+  });
+});
+
+describe("getFoodStage", () => {
+  afterEach(() => {
+    vi.useRealTimers();
+  });
+
+  it("returns 6-12mo for a 3-month-old", () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date("2026-06-15"));
+    const birthdate = new Date("2026-03-15");
+    expect(getFoodStage(birthdate)).toBe("6-12mo");
+  });
+
+  it("returns 6-12mo for a 9-month-old", () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date("2026-12-15"));
+    const birthdate = new Date("2026-03-15");
+    expect(getFoodStage(birthdate)).toBe("6-12mo");
+  });
+
+  it("returns 12-18mo for a 14-month-old", () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date("2027-05-15"));
+    const birthdate = new Date("2026-03-15");
+    expect(getFoodStage(birthdate)).toBe("12-18mo");
+  });
+
+  it("returns 18-24mo for a 20-month-old", () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date("2027-11-15"));
+    const birthdate = new Date("2026-03-15");
+    expect(getFoodStage(birthdate)).toBe("18-24mo");
+  });
+
+  it("returns 24mo+ for a 30-month-old", () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date("2028-09-15"));
+    const birthdate = new Date("2026-03-15");
+    expect(getFoodStage(birthdate)).toBe("24mo+");
+  });
+
+  it("handles edge case: born Jan 31, checked Feb 1 (should be 0 months, not 1)", () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date("2026-02-01"));
+    const birthdate = new Date("2026-01-31");
+    expect(getFoodStage(birthdate)).toBe("6-12mo");
+  });
+
+  it("handles edge case: born Dec 31, checked Jan 1 next year", () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date("2027-01-01"));
+    const birthdate = new Date("2026-12-31");
+    expect(getFoodStage(birthdate)).toBe("6-12mo");
   });
 });

@@ -24,10 +24,19 @@ export const dailyPlanSchema = z.object({
   lunch: mealSchema.optional(),
 });
 
+export const batchCookingSuggestionSchema = z.object({
+  component: z.string(),
+  usedInMeals: z.array(z.string()),
+  prepInstructions: z.string(),
+  timesSaved: z.string(),
+});
+
 export const weeklyPlanSchema = z.object({
   days: z.array(dailyPlanSchema).length(7),
+  batchCookingSuggestions: z.array(batchCookingSuggestionSchema),
 });
 
 export type MealOutput = z.infer<typeof mealSchema>;
 export type DailyPlanOutput = z.infer<typeof dailyPlanSchema>;
 export type WeeklyPlanOutput = z.infer<typeof weeklyPlanSchema>;
+export type BatchCookingSuggestion = z.infer<typeof batchCookingSuggestionSchema>;

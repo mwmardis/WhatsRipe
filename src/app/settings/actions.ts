@@ -31,6 +31,8 @@ export async function updateHousehold(data: {
   mealPrepDay: number | null;
   planWeeks: number;
   preferredCookingMethods: string[];
+  hebSessionToken: string | null;
+  hebStoreId: string | null;
 }) {
   const household = await getOrCreateHousehold();
 
@@ -50,6 +52,8 @@ export async function updateHousehold(data: {
       mealPrepDay: data.mealPrepDay,
       planWeeks: data.planWeeks,
       preferredCookingMethods: JSON.stringify(data.preferredCookingMethods),
+      hebSessionToken: data.hebSessionToken,
+      hebStoreId: data.hebStoreId,
     },
     include: { children: true },
   });

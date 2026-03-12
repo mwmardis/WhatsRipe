@@ -4,9 +4,8 @@ export type FeedingApproach = "traditional" | "blw" | "combination";
 
 export function getFoodStage(birthdate: Date): FoodStage {
   const now = new Date();
-  const ageInMonths =
-    (now.getFullYear() - birthdate.getFullYear()) * 12 +
-    (now.getMonth() - birthdate.getMonth());
+  const ageInDays = (now.getTime() - birthdate.getTime()) / (1000 * 60 * 60 * 24);
+  const ageInMonths = Math.floor(ageInDays / 30.4375);
   if (ageInMonths < 6) return "6-12mo"; // treat under-6mo same as 6-12mo
   if (ageInMonths < 12) return "6-12mo";
   if (ageInMonths < 18) return "12-18mo";

@@ -44,6 +44,7 @@ next-env.d.ts
 *.db
 *.db-journal
 nul
+.worktrees
 .claude/settings.local.json
 .playwright-mcp/console-2026-02-26T13-16-15-687Z.log
 .playwright-mcp/console-2026-02-26T13-17-32-530Z.log

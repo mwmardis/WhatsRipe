@@ -1,5 +1,7 @@
 "use client";
 
+import { useState } from "react";
+import { ChevronDown, ChevronUp, Timer } from "lucide-react";
 import { MealCard } from "./meal-card";
 
 interface ChildInfo {
@@ -28,11 +30,20 @@ interface DailyPlanData {
   meals: MealData[];
 }
 
+interface BatchCookingSuggestion {
+  component: string;
+  usedInMeals: string[];
+  prepInstructions: string;
+  timesSaved: string;
+}
+
 interface WeeklyViewProps {
   weekStart: Date;
   dailyPlans: DailyPlanData[];
   children: ChildInfo[];
   weekLabel?: string;
+  batchCookingSuggestions?: BatchCookingSuggestion[];
+  mealPrepDay?: string;
 }
 
 const DAY_NAMES = [
@@ -66,9 +77,52 @@ export function WeeklyView({
   dailyPlans,
   children,
   weekLabel,
+  batchCookingSuggestions,
+  mealPrepDay,
 }: WeeklyViewProps) {
+  const [prepExpanded, setPrepExpanded] = useState(false);
+
   return (
     <div className="flex flex-col gap-8 animate-fade-up-delay-2">
+      {batchCookingSuggestions && batchCookingSuggestions.length > 0 && (
+        <div className="rounded-xl border border-border/60 bg-card p-4">
+          <button
+            onClick={() => setPrepExpanded(!prepExpanded)}
+            className="flex w-full items-center justify-between"
+          >
+            <div className="flex items-center gap-2">
+              <Timer className="h-4 w-4 text-accent" />
+              <h3 className="font-display text-base font-semibold">
+                {mealPrepDay ? `${mealPrepDay} Prep Plan` : "Batch Cooking Plan"}
+              </h3>
+              <span className="text-xs text-muted-foreground">
+                {batchCookingSuggestions.length} suggestions
+              </span>
+            </div>
+            {prepExpanded ? (
+              <ChevronUp className="h-4 w-4 text-muted-foreground" />
+            ) : (
+              <ChevronDown className="h-4 w-4 text-muted-foreground" />
+            )}
+          </button>
+          {prepExpanded && (
+            <ul className="mt-3 flex flex-col gap-3">
+              {batchCookingSuggestions.map((suggestion, i) => (
+                <li key={i} className="flex flex-col gap-1 rounded-lg bg-muted/40 p-3">
+                  <div className="flex items-baseline justify-between">
+                    <span className="font-medium text-sm">{suggestion.component}</span>
+                    <span className="text-xs text-muted-foreground">{suggestion.timesSaved}</span>
+                  </div>
+                  <p className="text-sm text-muted-foreground">{suggestion.prepInstructions}</p>
+                  <p className="text-xs text-muted-foreground/70">
+                    Used in: {suggestion.usedInMeals.join(", ")}
+                  </p>
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
+      )}
       {weekLabel && (
         <h2 className="font-display text-xl font-semibold tracking-tight text-foreground">
           {weekLabel}
