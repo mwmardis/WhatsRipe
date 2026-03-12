@@ -2,8 +2,10 @@
 
 import { z } from "zod";
 import { generateObject } from "ai";
+import { revalidatePath } from "next/cache";
 import { db } from "@/lib/db";
 import { getModel } from "@/lib/ai/provider";
+import { generateGroceryList } from "./grocery-actions";
 import { buildRecipePrompt, buildSwapPrompt } from "@/lib/ai/prompts";
 import { mealSchema } from "@/lib/ai/schemas";
 import { getCurrentSeason, getSeasonalIngredients } from "@/lib/seasons";
@@ -225,4 +227,50 @@ export async function swapMeal(
       babyAdaptations: null,
     },
   });
+}
+
+// ── Internal helpers ───────────────────────────────────────────────────
+
+async function recalculateGroceryList(weeklyPlanId: string) {
+  // Check if any meals remain
+  const remainingMeals = await db.meal.findMany({
+    where: { dailyPlan: { weeklyPlanId } },
+  });
+
+  if (remainingMeals.length === 0) {
+    // No meals left — delete the grocery list entirely
+    await db.groceryList.deleteMany({ where: { weeklyPlanId } });
+    return;
+  }
+
+  // Regenerate grocery list from remaining meals
+  await generateGroceryList(weeklyPlanId);
+}
+
+// ── Delete meal ────────────────────────────────────────────────────────
+
+export async function deleteMeal(mealId: string) {
+  // Find meal with its parent chain to get weeklyPlanId
+  const meal = await db.meal.findUnique({
+    where: { id: mealId },
+    include: {
+      dailyPlan: {
+        include: { weeklyPlan: { include: { groceryList: true } } },
+      },
+    },
+  });
+
+  if (!meal) throw new Error("Meal not found");
+
+  // Delete the meal
+  await db.meal.delete({ where: { id: mealId } });
+
+  // Recalculate grocery list if one exists
+  const weeklyPlan = meal.dailyPlan.weeklyPlan;
+  if (weeklyPlan.groceryList) {
+    await recalculateGroceryList(weeklyPlan.id);
+  }
+
+  revalidatePath("/");
+  revalidatePath("/groceries");
 }
