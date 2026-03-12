@@ -22,6 +22,9 @@ export async function savePlan(
     data: {
       householdId,
       weekStart,
+      batchCookingSuggestions: weeklyPlanData.batchCookingSuggestions
+        ? JSON.stringify(weeklyPlanData.batchCookingSuggestions)
+        : null,
     },
   });
 

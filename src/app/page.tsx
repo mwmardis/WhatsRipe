@@ -51,6 +51,15 @@ export default async function Home() {
     })),
   }));
 
+  const batchCookingSuggestions = plan?.batchCookingSuggestions
+    ? JSON.parse(plan.batchCookingSuggestions)
+    : [];
+
+  const DAY_NAMES_FULL = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
+  const mealPrepDay = household.mealPrepDay !== null
+    ? DAY_NAMES_FULL[household.mealPrepDay]
+    : undefined;
+
   // Calculate weekly cost estimate
   const weeklyCost = plan?.dailyPlans
     .flatMap((dp) => dp.meals)
@@ -127,6 +136,8 @@ export default async function Home() {
           weekStart={new Date(plan.weekStart)}
           dailyPlans={parsedDailyPlans}
           children={children}
+          batchCookingSuggestions={batchCookingSuggestions}
+          mealPrepDay={mealPrepDay}
         />
       ) : (
         <EmptyState />

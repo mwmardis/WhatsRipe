@@ -152,7 +152,9 @@ For each meal provide:
 - cookingMethod: "standard", "slow-cooker", or "instant-pot"
 - estimatedCost: estimated ingredient cost in dollars for a family of 4
 - leftoverTip: brief suggestion for how to repurpose leftovers of this meal
-- kidCookingTasks: array of age-appropriate tasks kids can help with (task description + minimum age in years)${hasChildren && childAges.some((a) => a >= 2) ? `. Include tasks for children ages ${[...new Set(childAges.filter((a) => a >= 2))].join(", ")}` : ""}`;
+- kidCookingTasks: array of age-appropriate tasks kids can help with (task description + minimum age in years)${hasChildren && childAges.some((a) => a >= 2) ? `. Include tasks for children ages ${[...new Set(childAges.filter((a) => a >= 2))].join(", ")}` : ""}
+
+Also analyze the complete weekly plan and provide batch cooking suggestions. Identify ingredients or components that appear in multiple meals across the week. For each, suggest how to prepare them in advance to save time. Include what to prep, which meals use it, how to store it, and estimated time savings.`;
 
   let user = useSeasonalFoods
     ? `Create a 7-day meal plan for the current season: ${season}.
