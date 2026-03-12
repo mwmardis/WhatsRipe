@@ -26,7 +26,7 @@ export async function POST(request: Request) {
     }
 
     // Generate image using Gemini's image generation
-    const model = google("gemini-2.0-flash-exp", { useSearchGrounding: false });
+    const model = google("gemini-3.1-flash-image-preview");
 
     const { files } = await generateText({
       model,
@@ -44,7 +44,7 @@ export async function POST(request: Request) {
     }
 
     const imageFile = files[0];
-    const imageUrl = `data:${imageFile.mimeType};base64,${imageFile.base64}`;
+    const imageUrl = `data:${imageFile.mediaType};base64,${imageFile.base64}`;
 
     // Cache in database
     await db.meal.update({
