@@ -1,5 +1,6 @@
 "use server";
 
+import { revalidatePath } from "next/cache";
 import { db } from "@/lib/db";
 import type { WeeklyPlanOutput } from "@/lib/ai/schemas";
 
@@ -109,4 +110,44 @@ export async function deletePlan(id: string) {
   return db.weeklyPlan.delete({
     where: { id },
   });
+}
+
+export async function skipDay(dailyPlanId: string) {
+  // Find the daily plan with its parent weekly plan
+  const dailyPlan = await db.dailyPlan.findUnique({
+    where: { id: dailyPlanId },
+    include: {
+      meals: true,
+      weeklyPlan: { include: { groceryList: true } },
+    },
+  });
+
+  if (!dailyPlan) throw new Error("Daily plan not found");
+
+  // Delete all meals for this day
+  if (dailyPlan.meals.length > 0) {
+    await db.meal.deleteMany({
+      where: { dailyPlanId },
+    });
+  }
+
+  // Recalculate grocery list if one exists
+  if (dailyPlan.weeklyPlan.groceryList) {
+    // Check if any meals remain in the weekly plan
+    const remainingMeals = await db.meal.findMany({
+      where: { dailyPlan: { weeklyPlanId: dailyPlan.weeklyPlanId } },
+    });
+
+    if (remainingMeals.length === 0) {
+      await db.groceryList.deleteMany({
+        where: { weeklyPlanId: dailyPlan.weeklyPlanId },
+      });
+    } else {
+      const { generateGroceryList } = await import("./grocery-actions");
+      await generateGroceryList(dailyPlan.weeklyPlanId);
+    }
+  }
+
+  revalidatePath("/");
+  revalidatePath("/groceries");
 }
