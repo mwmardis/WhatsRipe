@@ -61,6 +61,8 @@ interface HouseholdData {
   mealPrepDay: number | null;
   planWeeks: number;
   preferredCookingMethods: string;
+  hebSessionToken: string | null;
+  hebStoreId: string | null;
 }
 
 interface HouseholdFormProps {
@@ -194,6 +196,8 @@ export function HouseholdForm({ initialData }: HouseholdFormProps) {
   const [preferredCookingMethods, setPreferredCookingMethods] = useState<string[]>(
     parseJsonArray(initialData.preferredCookingMethods)
   );
+  const [hebSessionToken, setHebSessionToken] = useState(initialData.hebSessionToken ?? "");
+  const [hebStoreId, setHebStoreId] = useState(initialData.hebStoreId ?? "");
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
 
@@ -246,6 +250,8 @@ export function HouseholdForm({ initialData }: HouseholdFormProps) {
         mealPrepDay,
         planWeeks,
         preferredCookingMethods,
+        hebSessionToken: hebSessionToken || null,
+        hebStoreId: hebStoreId || null,
       });
       setSaved(true);
     } finally {
@@ -517,6 +523,41 @@ export function HouseholdForm({ initialData }: HouseholdFormProps) {
               ))}
             </SelectContent>
           </Select>
+        </div>
+
+        {/* HEB Integration */}
+        <div className="flex flex-col gap-3 pt-4 border-t border-border/40">
+          <Label className="font-display text-base font-semibold">HEB Integration</Label>
+          <p className="text-xs text-muted-foreground">
+            Export grocery lists directly to your HEB shopping list. Find your session token in your browser cookies (sst value) at heb.com.
+          </p>
+          <div className="flex flex-col gap-2">
+            <Label htmlFor="hebSessionToken" className="text-sm">HEB Session Token</Label>
+            <Input
+              id="hebSessionToken"
+              type="password"
+              value={hebSessionToken}
+              onChange={(e) => {
+                setHebSessionToken(e.target.value);
+                setSaved(false);
+              }}
+              placeholder="Paste your sst cookie value"
+              className="rounded-lg"
+            />
+          </div>
+          <div className="flex flex-col gap-2">
+            <Label htmlFor="hebStoreId" className="text-sm">HEB Store Number</Label>
+            <Input
+              id="hebStoreId"
+              value={hebStoreId}
+              onChange={(e) => {
+                setHebStoreId(e.target.value);
+                setSaved(false);
+              }}
+              placeholder="e.g. 727"
+              className="rounded-lg w-32"
+            />
+          </div>
         </div>
 
         <Button
