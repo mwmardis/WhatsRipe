@@ -111,10 +111,10 @@ function buildFamilyFeaturesContext(household: HouseholdContext): string {
     const loved = household.mealHistory.filter((m) => m.rating === "loved").map((m) => m.name);
     const refused = household.mealHistory.filter((m) => m.rating === "refused").map((m) => m.name);
     if (loved.length > 0) {
-      parts.push(`FAMILY FAVORITES (similar meals welcome): ${loved.join(", ")}.`);
+      parts.push(`FAMILY FAVORITES (generate meals with similar flavors, ingredients, and cooking styles): ${loved.join(", ")}.`);
     }
     if (refused.length > 0) {
-      parts.push(`MEALS KIDS REFUSED (avoid similar): ${refused.join(", ")}.`);
+      parts.push(`MEALS FAMILY REFUSED (avoid these and meals with similar flavor profiles or main ingredients): ${refused.join(", ")}.`);
     }
   }
 

@@ -38,9 +38,21 @@ export async function POST() {
     const pantryItemNames = pantryItems.map((p) => p.name);
 
     // Get meal rating history for context
+    // Get recent meal ratings (last 30 days, max 50) for feedback learning
+    const thirtyDaysAgo = new Date();
+    thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
     const mealRatings = await db.mealRating.findMany({
+      where: {
+        createdAt: { gte: thirtyDaysAgo },
+        rating: { in: ["loved", "refused"] }, // skip "ok" — neutral signal
+        meal: {
+          dailyPlan: {
+            weeklyPlan: { householdId: household.id },
+          },
+        },
+      },
       orderBy: { createdAt: "desc" },
-      take: 30,
+      take: 50,
       select: { mealName: true, rating: true },
     });
     const mealHistory = mealRatings.map((r) => ({
