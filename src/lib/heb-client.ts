@@ -88,6 +88,104 @@ async function hebGraphQL(config: HebConfig, operations: unknown[]) {
   return res.json();
 }
 
+export interface HebProductResult {
+  productId: string;
+  name: string;
+  brand: string | null;
+  price: number | null;
+  size: string | null;
+  imageUrl: string | null;
+}
+
+export async function searchHebProducts(
+  config: HebConfig,
+  query: string
+): Promise<HebProductResult[]> {
+  const cookieParts = [`sat=${config.sessionToken}`];
+  if (config.sstToken) {
+    cookieParts.unshift(`sst=${config.sstToken}`);
+  }
+
+  const url = `https://www.heb.com/search?q=${encodeURIComponent(query)}`;
+  const res = await fetch(url, {
+    headers: {
+      "user-agent":
+        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/134.0.0.0 Safari/537.36",
+      accept: "text/html",
+      cookie: cookieParts.join("; "),
+    },
+  });
+
+  // Parse refreshed tokens from response
+  const setCookies = res.headers.getSetCookie
+    ? res.headers.getSetCookie()
+    : [];
+  const refreshed = parseSetCookies(setCookies);
+  if (refreshed.sat || refreshed.sst) {
+    lastRefreshedTokens = { ...lastRefreshedTokens, ...refreshed };
+  }
+
+  if (!res.ok) {
+    if (res.status === 401 || res.status === 403) {
+      throw new Error(
+        "HEB session expired. Please update your HEB tokens in settings."
+      );
+    }
+    throw new Error(`HEB search failed: ${res.status}`);
+  }
+
+  const html = await res.text();
+
+  // Extract __NEXT_DATA__ JSON from the HTML
+  const match = html.match(
+    /<script id="__NEXT_DATA__"[^>]*>([\s\S]*?)<\/script>/
+  );
+  if (!match) return [];
+
+  let nextData: Record<string, unknown>;
+  try {
+    nextData = JSON.parse(match[1]);
+  } catch {
+    return [];
+  }
+
+  // Navigate to searchGridV2 items
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const props = nextData as any;
+  const components =
+    props?.props?.pageProps?.layout?.visualComponents ?? [];
+  const searchGrid = components.find(
+    (c: { type: string }) => c.type === "searchGridV2"
+  );
+  if (!searchGrid) return [];
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const items = (searchGrid.items ?? []).filter(
+    (item: { __typename: string }) => item.__typename === "Product"
+  );
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  return items.map((item: any): HebProductResult => {
+    const sku = item.SKUs?.[0];
+    const price = sku?.contextPrices?.[0]?.listPrice?.amount ?? null;
+    const size = sku?.customerFriendlySize ?? null;
+    const mediumImg = item.productImageUrls?.find(
+      (img: { size: string }) => img.size === "MEDIUM"
+    );
+    const imageUrl =
+      mediumImg?.url ?? item.productImageUrls?.[0]?.url ?? null;
+
+    return {
+      productId: String(item.id),
+      name: String(item.displayName ?? ""),
+      brand: item.brand?.name ?? null,
+      price: typeof price === "number" ? price : null,
+      size: size ? String(size) : null,
+      imageUrl: imageUrl ? String(imageUrl) : null,
+    };
+  });
+}
+
 export async function createHebShoppingList(
   config: HebConfig,
   name: string
