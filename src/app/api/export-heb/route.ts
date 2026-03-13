@@ -23,7 +23,12 @@ export async function POST(request: Request) {
 
     const groceryList = await db.groceryList.findUnique({
       where: { id: groceryListId },
-      include: { items: { where: { checked: false } } },
+      include: {
+        items: {
+          where: { checked: false },
+          include: { productMapping: true },
+        },
+      },
     });
 
     if (!groceryList || groceryList.items.length === 0) {
@@ -52,7 +57,10 @@ export async function POST(request: Request) {
     const listId = await createHebShoppingList(config, listName);
 
     // Add items (single batch)
-    const items = groceryList.items.map((item) => ({ name: item.name }));
+    const items = groceryList.items.map((item) => ({
+      name: item.name,
+      hebProductId: item.productMapping?.hebProductId,
+    }));
     await addItemsToHebList(config, listId, items);
 
     // Persist any refreshed tokens back to the database

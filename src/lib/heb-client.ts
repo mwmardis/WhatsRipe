@@ -217,7 +217,7 @@ export async function createHebShoppingList(
 export async function addItemsToHebList(
   config: HebConfig,
   listId: string,
-  items: { name: string }[]
+  items: { name: string; hebProductId?: string }[]
 ): Promise<void> {
   await hebGraphQL(config, [
     {
@@ -226,7 +226,9 @@ export async function addItemsToHebList(
         input: {
           listId,
           listItems: items.map((item) => ({
-            item: { genericName: item.name },
+            item: item.hebProductId
+              ? { productId: item.hebProductId }
+              : { genericName: item.name },
           })),
           page: { sort: "CATEGORY", sortDirection: "ASC" },
         },
