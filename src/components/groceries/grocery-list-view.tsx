@@ -12,6 +12,16 @@ import {
   clearCheckedItems,
 } from "@/app/actions/grocery-actions";
 
+interface ProductMappingData {
+  id: string;
+  hebProductId: string;
+  hebProductName: string;
+  hebBrand: string | null;
+  hebPrice: number | null;
+  hebSize: string | null;
+  hebImageUrl: string | null;
+}
+
 interface GroceryItemData {
   id: string;
   name: string;
@@ -20,6 +30,7 @@ interface GroceryItemData {
   storeSection: string;
   checked: boolean;
   manuallyAdded: boolean;
+  productMapping: ProductMappingData | null;
 }
 
 interface GroceryListData {
