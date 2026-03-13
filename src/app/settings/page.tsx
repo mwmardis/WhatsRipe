@@ -1,12 +1,17 @@
 export const dynamic = "force-dynamic";
 
 import { getOrCreateHousehold } from "./actions";
+import { getProductMappings } from "@/app/actions/product-mapping-actions";
 import { HouseholdForm } from "@/components/settings/household-form";
 import { ChildrenManager } from "@/components/settings/children-manager";
 import { FamilyMembers } from "@/components/settings/family-members";
+import { ProductDefaultsSection } from "@/components/settings/product-defaults-section";
 
 export default async function SettingsPage() {
   const household = await getOrCreateHousehold();
+  const mappings = household.hebSessionToken
+    ? await getProductMappings()
+    : [];
 
   return (
     <div className="max-w-2xl mx-auto px-4 pt-6 pb-28 space-y-8">
@@ -49,6 +54,10 @@ export default async function SettingsPage() {
         <ChildrenManager initialChildren={household.children} />
 
         <FamilyMembers initialMembers={household.familyMembers} />
+
+        {household.hebSessionToken && (
+          <ProductDefaultsSection mappings={mappings} />
+        )}
       </div>
     </div>
   );
