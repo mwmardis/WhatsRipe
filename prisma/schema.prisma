@@ -30,6 +30,7 @@ model HouseholdProfile {
   weeklyPlans             WeeklyPlan[]
   pantryItems             PantryItem[]
   familyMembers           FamilyMember[]
+  productMappings         ProductMapping[]
   createdAt               DateTime @default(now())
   updatedAt               DateTime @updatedAt
 }
@@ -121,9 +122,29 @@ model GroceryItem {
   unit          String
   storeSection  String      // "produce", "dairy", "meat", "pantry", "frozen"
   checked       Boolean     @default(false)
-  manuallyAdded Boolean     @default(false)
-  groceryListId String
-  groceryList   GroceryList @relation(fields: [groceryListId], references: [id], onDelete: Cascade)
+  manuallyAdded    Boolean         @default(false)
+  productMappingId String?
+  productMapping   ProductMapping? @relation(fields: [productMappingId], references: [id], onDelete: SetNull)
+  groceryListId    String
+  groceryList      GroceryList     @relation(fields: [groceryListId], references: [id], onDelete: Cascade)
+}
+
+model ProductMapping {
+  id             String   @id @default(cuid())
+  genericName    String
+  hebProductId   String
+  hebProductName String
+  hebBrand       String?
+  hebPrice       Float?
+  hebSize        String?
+  hebImageUrl    String?
+  householdId    String
+  household      HouseholdProfile @relation(fields: [householdId], references: [id], onDelete: Cascade)
+  groceryItems   GroceryItem[]
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  @@unique([householdId, hebProductId])
 }
 
 model PantryItem {
