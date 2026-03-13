@@ -6,6 +6,7 @@ import { db } from "@/lib/db";
 import { getModel } from "@/lib/ai/provider";
 import { groceryListSchema, buildGroceryPrompt } from "@/lib/ai/grocery-prompt";
 import { getOrCreateHousehold } from "@/app/settings/actions";
+import { findBestMatch } from "@/lib/fuzzy-match";
 
 export async function generateGroceryList(weeklyPlanId: string) {
   // Load all meals for the plan
@@ -63,24 +64,35 @@ export async function generateGroceryList(weeklyPlanId: string) {
     where: { weeklyPlanId },
   });
 
-  // Create grocery list and items
+  // Load existing product mappings for auto-linking
+  const mappingCandidates = await db.productMapping.findMany({
+    where: { householdId: household.id },
+    select: { id: true, genericName: true },
+  });
+
+  // Create grocery list and items, auto-linking to product mappings
   const groceryList = await db.groceryList.create({
     data: {
       weeklyPlanId,
       items: {
-        create: object.items.map((item) => ({
-          name: item.name,
-          quantity: item.quantity,
-          unit: item.unit,
-          storeSection: item.storeSection,
-          checked: false,
-          manuallyAdded: false,
-        })),
+        create: object.items.map((item) => {
+          const match = findBestMatch(item.name, mappingCandidates);
+          return {
+            name: item.name,
+            quantity: item.quantity,
+            unit: item.unit,
+            storeSection: item.storeSection,
+            checked: false,
+            manuallyAdded: false,
+            ...(match ? { productMappingId: match.id } : {}),
+          };
+        }),
       },
     },
     include: {
       items: {
         orderBy: { storeSection: "asc" },
+        include: { productMapping: true },
       },
     },
   });
@@ -95,6 +107,7 @@ export async function getGroceryList(weeklyPlanId: string) {
     include: {
       items: {
         orderBy: { storeSection: "asc" },
+        include: { productMapping: true },
       },
     },
   });
